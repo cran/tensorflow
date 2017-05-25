@@ -1,8 +1,7 @@
 Package: tensorflow
 Type: Package
 Title: R Interface to TensorFlow
-Version: 0.7
-Date: 2017-03-21
+Version: 0.8.1
 Authors@R: c(
   person("JJ", "Allaire", role = c("aut", "cre"),
      comment = "R interface", email = "jj@rstudio.com"),
@@ -35,11 +34,11 @@ SystemRequirements: TensorFlow (https://www.tensorflow.org/)
 Encoding: UTF-8
 LazyData: true
 Depends: R (>= 3.0)
-Imports: utils, reticulate (>= 0.7), yaml
+Imports: utils, reticulate (>= 0.8), yaml, jsonlite
 RoxygenNote: 6.0.1
 Suggests: testthat
 NeedsCompilation: no
-Packaged: 2017-03-22 14:01:58 UTC; jjallaire
+Packaged: 2017-05-26 00:29:27 UTC; jjallaire
 Author: JJ Allaire [aut, cre] (R interface),
   RStudio [cph],
   Dirk Eddelbuettel [ctb, cph],
@@ -48,4 +47,4 @@ Author: JJ Allaire [aut, cre] (R interface),
   Google Inc. [ctb, cph] (Examples and Tutorials)
 Maintainer: JJ Allaire <jj@rstudio.com>
 Repository: CRAN
-Date/Publication: 2017-03-22 14:19:55 UTC
+Date/Publication: 2017-05-26 00:35:04 UTC
