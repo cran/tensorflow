@@ -22,6 +22,11 @@
 #' @name tensorflow
 NULL
 
+# globals
+.globals <- new.env(parent = emptyenv())
+.globals$tensorboards <- new.env(parent = emptyenv())
+
+
 .onLoad <- function(libname, pkgname) {
 
   # if TENSORFLOW_PYTHON is defined then forward it to RETICULATE_PYTHON
@@ -57,6 +62,7 @@ NULL
 
   ))
 }
+
 
 
 #' TensorFlow configuration information
@@ -100,6 +106,18 @@ tf_config <- function() {
       error_message = tf_config_error_message()
     ))
   }
+}
+
+
+#' @rdname tf_config
+#' @keywords internal
+#' @export
+tf_version <- function() {
+  config <- tf_config()
+  if (config$available)
+    config$version
+  else
+    NULL
 }
 
 #' @export
