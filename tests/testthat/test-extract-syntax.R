@@ -233,3 +233,31 @@ test_that("passing non-vector indices errors", {
                'only vector indexing of Tensors is currently supported')
 
 })
+
+test_that("undefined extensions extract", {
+  skip_if_no_tensorflow()
+
+  # thanks to @dfalbel https://github.com/rstudio/tensorflow/issues/139
+  x <- tf$placeholder(tf$int16, shape = list(NULL, 1L))
+  sub <- x[, 0L]
+
+  # also check it returns the correct dimensions to R
+  x_ <- matrix(seq_len(3), ncol = 1)
+  sess <- tf$Session()
+  result <- sess$run(sub, dict(x = x_))
+  expectation <- array(x_[, 1, drop = TRUE])
+  expect_equal(result, expectation)
+
+})
+
+test_that("dim(), length(), nrow(), and ncol() work on tensors", {
+
+  skip_if_no_tensorflow()
+
+  a_matrix <- matrix(rnorm(100), ncol = 2)
+  a_tensor <- tf$constant(a_matrix)
+  expect_equal(dim(a_matrix), dim(a_tensor))
+  expect_equal(length(a_matrix), length(a_tensor))
+  expect_equal(nrow(a_matrix), nrow(a_tensor))
+  expect_equal(ncol(a_matrix), ncol(a_tensor))
+})

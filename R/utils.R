@@ -1,4 +1,4 @@
-
+"%||%" <- function(x, y) if (is.null(x)) y else x
 
 is_windows <- function() {
   identical(.Platform$OS.type, "windows")
@@ -30,4 +30,6 @@ ensure_loaded <- function() {
   invisible(tf$`__version__`)
 }
 
-
+aliased <- function(path) {
+  sub(Sys.getenv("HOME"), "~", path)
+}

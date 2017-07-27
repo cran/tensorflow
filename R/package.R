@@ -1,7 +1,7 @@
 
 #' TensorFlow for R
 #'
-#' \href{https://tensorflow.org}{TensorFlow} is an open source software library
+#' \href{https://www.tensorflow.org}{TensorFlow} is an open source software library
 #' for numerical computation using data flow graphs. Nodes in the graph
 #' represent mathematical operations, while the graph edges represent the
 #' multidimensional data arrays (tensors) communicated between them. The
@@ -18,14 +18,15 @@
 #'
 #' @import reticulate
 #'
+#' @importFrom tfruns run_dir write_run_data
+#'
 #' @docType package
 #' @name tensorflow
 NULL
 
 # globals
 .globals <- new.env(parent = emptyenv())
-.globals$tensorboards <- new.env(parent = emptyenv())
-
+.globals$tensorboard <- NULL
 
 .onLoad <- function(libname, pkgname) {
 

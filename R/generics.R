@@ -37,6 +37,27 @@ print.tensorflow.python.ops.variables.Variable <- print.tensorflow.python.framew
   names(flags)
 }
 
+#' @export
+"dim.tensorflow.python.framework.ops.Tensor" <- function(x) {
+  if (py_is_null_xptr(x))
+    NULL
+  else {
+    shape <- x$get_shape()
+    if (!is.null(shape$ndims))
+      shape$as_list()
+    else
+      NULL
+  }
+}
+
+#' @export
+"length.tensorflow.python.framework.ops.Tensor" <- function(x) {
+  if (py_is_null_xptr(x))
+    length(NULL)
+  else
+    Reduce(`*`, dim(x))
+}
+
 # https://stat.ethz.ch/R-manual/R-devel/library/base/html/InternalMethods.html
 
 
@@ -45,6 +66,8 @@ print.tensorflow.python.ops.variables.Variable <- print.tensorflow.python.framew
 
   # check for blank spaces in the call
   is.blank <- function (x) is.name(x) && as.character(x) == ''
+
+  integer_mask <- function (mask) sum(2 ^ (seq_along(mask) - 1)[mask])
 
   # evaluate any calls (in the environment calling `[`) and replace any
   # skipped indices (blank names) with NAs
@@ -76,6 +99,13 @@ print.tensorflow.python.ops.variables.Variable <- print.tensorflow.python.framew
 
   # tensor shape as a vector
   x_size <- x$get_shape()$as_list()
+
+  # if it has dimension(s) of undefined size, this will be a list with NULLs
+  if (is.list(x_size)) {
+    x_size <- lapply(x_size, function (x) ifelse(is.null(x), NA, x))
+    x_size <- unlist(x_size)
+  }
+
   n_indices <- length(x_size)
 
   # Capture all indices beyond i and j (skip function, `x`, `drop`, `i` & `j`
@@ -102,7 +132,7 @@ print.tensorflow.python.ops.variables.Variable <- print.tensorflow.python.framew
 
   # combine the indices & strip out any names
   indices <- c(i, j, extra_indices)
-  names(indices) = NULL
+  names(indices) <- NULL
 
   # error if wrong number of indices
   if (length(indices) !=  n_indices) {
@@ -148,16 +178,21 @@ print.tensorflow.python.ops.variables.Variable <- print.tensorflow.python.framew
                        length(x) == 1 && !is.na(x)
                      },
                      FALSE)
-    shrink_integer <- sum(2 ^ (seq_along(shrink) - 1)[shrink])
+    shrink_integer <- integer_mask(shrink)
   } else {
     shrink_integer <- 0
   }
+
+  # if there were dimensions with undefined sizes, mask them from subsetting
+  begin_mask <- end_mask <- integer_mask(is.na(x_size))
 
   # return the slice
   tf$strided_slice(input_ = x,
                    begin = begin_shape,
                    end = end_shape,
                    strides = stride_shape,
+                   begin_mask = begin_mask,
+                   end_mask = end_mask,
                    shrink_axis_mask = shrink_integer)
 }
 
