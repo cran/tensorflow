@@ -5,17 +5,18 @@
 #'
 #' @param log_dir Directories to scan for training logs. If this is a named
 #'   character vector then the specified names will be used as aliases within
-#'   TensorBoard. The default is `NULL`, which will result in the active
-#'   [run_dir()] (if available) and otherwise will use the current working
-#'   directory.
-#' @param action Specify whether to start or stop TensorBoard for the given
-#'   `log_dir` (TensorBoard will be stopped automatically when the R session
-#'   from which it is launched is terminated).
+#'   TensorBoard.
+#' @param action Specify whether to start or stop TensorBoard (TensorBoard will
+#'   be stopped automatically when the R session from which it is launched is
+#'   terminated).
 #' @param host Host for serving TensorBoard
 #' @param port Port for serving TensorBoard. If "auto" is specified (the
 #'   default) then an unused port will be chosen automatically.
-#' @param launch_browser `TRUE` to open a web browser for TensorBoard after
-#'   launching.
+#' @param launch_browser Open a web browser for TensorBoard after launching.
+#'   Defaults to `TRUE` in interactive sessions. When running under RStudio uses
+#'   an RStudio window by default (pass a function e.g. [utils::browseURL()] to
+#'   open in an external browser). Use the `tensorflow.tensorboard.browser`
+#'   option to establish a global default behavior.
 #' @param reload_interval How often the backend should load more data.
 #' @param purge_orphaned_data Whether to purge data that may have been orphaned
 #'   due to TensorBoard restarts. Disabling purge_orphaned_data can be used to
@@ -33,9 +34,10 @@
 #'   terminate TensorBoard.
 #'
 #' @export
-tensorboard <- function(log_dir = NULL, action = c("start", "stop"),
+tensorboard <- function(log_dir, action = c("start", "stop"),
                         host = "127.0.0.1", port = "auto",
-                        launch_browser = interactive(),
+                        launch_browser = getOption("tensorflow.tensorboard.browser",
+                                                   interactive()),
                         reload_interval = 5,
                         purge_orphaned_data = TRUE
                         ) {
@@ -47,13 +49,20 @@ tensorboard <- function(log_dir = NULL, action = c("start", "stop"),
   if (!nzchar(Sys.which("tensorboard")))
     stop("Unable to find tensorboard on PATH")
 
-  # determine the default log_dir if necessary
-  if (is.null(log_dir)) {
-    if (!is.null(run_dir()))
-      log_dir <- run_dir()
+  # if log_dir is missing try to find a "latest run"
+  if (missing(log_dir)) {
+    latest <- tfruns::latest_run()
+    if (!is.null(latest))
+      log_dir <- latest$run_dir
     else
-      log_dir <- "."
+      stop("A log_dir must be specified for tensorboard")
   }
+
+  # convert input to run_dir
+  log_dir <- tfruns::as_run_dir(log_dir)
+
+  # expand log dir path
+  log_dir <- path.expand(log_dir)
 
   # create log_dir(s) if necessary
   log_dir <- as.character(lapply(log_dir, function(dir) {
@@ -116,8 +125,16 @@ tensorboard <- function(log_dir = NULL, action = c("start", "stop"),
     # browse the url if requested
     url <- paste0("http://", host, ":", port)
     cat("Started TensorBoard at", url, "\n")
-    if (launch_browser)
-      utils::browseURL(url)
+    if (isTRUE(launch_browser)) {
+      # try to use the page_viewer on osx (qtwebkit can't currently handle tensorboard)
+      page_viewer <- getOption("page_viewer")
+      if (is_osx() && !is.null(page_viewer))
+        page_viewer(url, title = "TensorBoard - RStudio")
+      else
+        getOption("browser")(url)
+    } else if (is.function(launch_browser)) {
+      launch_browser(url)
+    }
 
     # return the url invisibly
     invisible(url)
@@ -129,9 +146,9 @@ tensorboard <- function(log_dir = NULL, action = c("start", "stop"),
 
 launch_tensorboard <- function(log_dir, host, port, explicit_port, reload_interval, purge_orphaned_data) {
 
-  # check for names and provide defaults if length > 1
+  # check for names and provide defaults
   names <- names(log_dir)
-  if (is.null(names) && (length(log_dir) > 1))
+  if (is.null(names))
     names <- basename(log_dir)
 
   # concatenate names if we have them
@@ -150,37 +167,36 @@ launch_tensorboard <- function(log_dir, host, port, explicit_port, reload_interv
                                "--purge_orphaned_data", purge_orphaned_data),
                              stdout = "|", stderr = "|")
 
-  # poll for output until we've succesfully started up or the process dies
+  # poll for availability of the http server (continue as long as the
+  # process is still alive). note that we used to poll for stdout however
+  # tensorflow v1.3 stopped writing a newline after printing the host:port
+  # and caused us to haning in p$read_output_lines()
   started <- FALSE
+  Sys.sleep(0.25)
+  conn <- url(paste0("http://", host, ":", as.character(port)))
+  on.exit(close(conn), add = TRUE)
   while(!started && p$is_alive()) {
+    Sys.sleep(0.25)
+    tryCatch({
+      suppressWarnings(readLines(conn, n = -1))
+      started = TRUE
+    },
+    error = function(e) {}
+    )
+  }
 
-    # poll for io
-    res <- p$poll_io(100L)
+  # poll for error messages
+  res <- p$poll_io(100L)
 
-    # see if we have stdout
-    if (identical(res[["output"]], "ready")) {
+  # see if we have stderr
+  if (identical(res[["error"]], "ready")) {
 
-      # capture output
-      out <- p$read_output_lines()
+    # capture error output
+    err <- p$read_error_lines()
 
-      # check if it's a startup notification. if it is then set the started flag,
-      # otherwise just forward the ouptut
-      if (any(grepl("http://", out, fixed = TRUE)))
-        started <- TRUE
-      else
-        write(out, stdout())
-    }
-
-    # see if we have stderr
-    if (identical(res[["error"]], "ready")) {
-
-      # capture error output
-      err <- p$read_error_lines()
-
-      # write it unless it's a port in use error when we are auto-binding
-      if (explicit_port || !any(grepl(paste0("^.*", port, ".*already in use.*$"), err)))
-        write(err, stderr())
-    }
+    # write it unless it's a port in use error when we are auto-binding
+    if (explicit_port || !any(grepl(paste0("^.*", port, ".*already in use.*$"), err)))
+      write(err, stderr())
   }
 
   # return the process

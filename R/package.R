@@ -18,8 +18,6 @@
 #'
 #' @import reticulate
 #'
-#' @importFrom tfruns run_dir write_run_data
-#'
 #' @docType package
 #' @name tensorflow
 NULL
@@ -38,6 +36,10 @@ NULL
   # delay load tensorflow
   tf <<- import("tensorflow", delay_load = list(
 
+    priority = 5,
+
+    environment = "r-tensorflow",
+
     on_load = function() {
 
       # register warning suppression handler
@@ -52,8 +54,8 @@ NULL
         }
       ))
 
-      # if we loaded tensorflow then register tf help topics
-      register_tf_help_topics()
+      # if we loaded tensorflow then register tf help handler
+      register_tf_help_handler()
     }
     ,
 
