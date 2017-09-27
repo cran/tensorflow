@@ -111,9 +111,12 @@ install_tensorflow <- function(method = c("auto", "virtualenv", "conda", "system
         install_commands <- NULL
         if (is_osx()) {
           if (!have_pip)
-            install_commands <- c(install_commands, "$ sudo easy_install pip")
-          if (!have_virtualenv)
-            install_commands <- c(install_commands, "$ sudo pip install --upgrade virtualenv")
+            install_commands <- c(install_commands, "$ sudo /usr/bin/easy_install pip")
+          if (!have_virtualenv) {
+            if (is.null(pip))
+              pip <- "/usr/local/bin/pip"
+            install_commands <- c(install_commands, sprintf("$ sudo %s install --upgrade virtualenv", pip))
+          }
           if (!is.null(install_commands))
             install_commands <- paste(install_commands, collapse = "\n")
         } else if (is_ubuntu()) {
@@ -243,6 +246,9 @@ install_tensorflow_conda <- function(conda, version, gpu, package_url, extra_pac
     releases <- fromJSON("https://api.github.com/repos/tensorflow/tensorflow/releases")
     latest <- subset(releases, grepl("^v\\d+\\.\\d+\\.\\d+$", releases$tag_name))$tag_name[[1]]
     version <- sub("v", "", latest)
+    # workaround the fact that v1.3.1 is a GitHub only release w/ no tarball
+    if (identical(version, "1.3.1"))
+      version <- "1.3.0"
     cat("done\n")
   }
 
@@ -286,9 +292,18 @@ install_tensorflow_conda <- function(conda, version, gpu, package_url, extra_pac
   # install additional packages
   conda_install(envname, tf_extra_pkgs(), conda = conda)
 
-  # install extra packages (use pip to ensure we don't get legacy versions)
-  if (!is.null(extra_packages))
-    conda_install(envname, extra_packages, pip = TRUE, conda = conda)
+  # install extra packages (use pip to ensure we don't get legacy versions, set
+  # pip_ignore_installed to FALSE to ensure that pip source installs on
+  # windows don't attempt to override conda binary packages (e.g. SciPy which
+  # will likely fail to install via pip due to compilation dependencies)
+  if (!is.null(extra_packages)) {
+    conda_install(
+      envname,
+      extra_packages,
+      pip = TRUE,
+      pip_ignore_installed = FALSE,
+      conda = conda)
+  }
 }
 
 install_tensorflow_virtualenv <- function(python, virtualenv, version, gpu, package_url, extra_packages = NULL) {
@@ -336,7 +351,7 @@ install_tensorflow_virtualenv <- function(python, virtualenv, version, gpu, pack
   }
 
   # upgrade pip so it can find tensorflow
-  pip_install(pip_version, "Upgrading pip")
+  pip_install("pip", "Upgrading pip")
 
   # install updated version of the wheel package
   pip_install("wheel", "Upgrading wheel")

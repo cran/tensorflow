@@ -33,3 +33,17 @@ ensure_loaded <- function() {
 aliased <- function(path) {
   sub(Sys.getenv("HOME"), "~", path)
 }
+
+
+call_hook <- function(name, ...) {
+  hooks <- getHook(name)
+  if (!is.list(hooks))
+    hooks <- list(hooks)
+  response <- FALSE
+  lapply(hooks, function(hook) {
+    if (isTRUE(hook(...)))
+      response <<- TRUE
+  })
+  response
+}
+
