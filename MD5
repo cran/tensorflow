@@ -1,6 +1,7 @@
-856b3b9bc513df2df7fe004e0957e251 *DESCRIPTION
-125b5fec432f29699e7308fa1bf2b6d9 *NAMESPACE
+8e03004a245cd7f66b4deef77e4b6ee0 *DESCRIPTION
+a6472abdbaf1847f9cfa8760c9b3aabc *NAMESPACE
 68d834ed4ccd8533dc235b694808e3d1 *R/arguments.R
+cb802c24d1ec786f3b77096a5a17a1ce *R/eager.R
 11ae1df52090519f8d5c21d809454dba *R/estimator-generics.R
 9fec668c0d11caa776a04536ebd3447f *R/extraction.R
 7b78d237b223c4a02ab85d01d5d23683 *R/flags.R
@@ -35,6 +36,7 @@ b6b7f10b5628fef254c4fd0c4c3def3b *man/tensorboard.Rd
 bc8ee217240365383171b40a14213f4d *man/tensorflow.Rd
 acf7b0eb071e5ca9554047fa78659d2b *man/tf.Rd
 e99323d12bb948312a5b228f8acf663a *man/tf_config.Rd
+d533b3d8392712a5ab79e2bcab1dc249 *man/tfe_enable_eager_execution.Rd
 d7234343bdfeacd5c3fff964744735f7 *man/train.Rd
 b6a24ab4522914a35794623dc3cc9534 *man/train_and_evaluate.Rd
 7f66da6bf8060df9073413d07807a4ea *man/use_session_with_seed.Rd
