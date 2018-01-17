@@ -9,8 +9,8 @@ export_savedmodel(object, export_dir_base, ...)
 \arguments{
 \item{object}{An \R object.}
 
-\item{export_dir_base}{A string containing a directory in which to create
-versioned subdirectories containing exported SavedModels.}
+\item{export_dir_base}{A string containing a directory in which to export the
+SavedModel.}
 
 \item{...}{Optional arguments passed on to implementing methods.}
 }
@@ -18,5 +18,15 @@ versioned subdirectories containing exported SavedModels.}
 The path to the exported directory, as a string.
 }
 \description{
-Serialize a model to disk.
+Serialize a model to disk. See implementations in the
+\link[keras:export_savedmodel.keras.engine.training.Model]{keras} and
+\link[tfestimators:export_savedmodel.tf_estimator]{tfestimators} packages.
 }
+\section{Implementations}{
+
+\itemize{
+\item \link[keras:export_savedmodel.keras.engine.training.Model]{keras}
+\item \link[tfestimators:export_savedmodel.tf_estimator]{tfestimators}
+}
+}
+

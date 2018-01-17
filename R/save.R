@@ -46,3 +46,49 @@ view_savedmodel <- function(
 
   tensorboard(log_dir = log_dir)
 }
+
+#' @export
+export_savedmodel.tensorflow.python.client.session.Session <- function(
+  object,
+  export_dir_base,
+  inputs,
+  outputs,
+  overwrite = TRUE,
+  versioned = !overwrite,
+  ...) {
+
+  if (versioned) {
+    export_dir_base <- file.path(export_dir_base, format(Sys.time(), "%Y%m%d%H%M%OS", tz = "GMT"))
+  }
+
+  sess <- object
+  if (!overwrite && !versioned && dir.exists(export_dir_base))
+    stop("Directory ", export_dir_base, " already exists.")
+
+  tensor_inputs_info <- lapply(inputs, function(i) tf$saved_model$utils$build_tensor_info(i))
+  tensor_outputs_info <- lapply(outputs, function(o) tf$saved_model$utils$build_tensor_info(o))
+
+  prediction_signature <- tf$saved_model$signature_def_utils$build_signature_def(
+    inputs = tensor_inputs_info,
+    outputs = tensor_outputs_info,
+    method_name = tf$saved_model$signature_constants$PREDICT_METHOD_NAME)
+
+  signature_def_map_class_dig <- tf$saved_model$signature_constants$DEFAULT_SERVING_SIGNATURE_DEF_KEY
+  signature <- list()
+  signature[[signature_def_map_class_dig]] <- prediction_signature
+
+  if (overwrite && dir.exists(export_dir_base))
+    unlink(export_dir_base, recursive = TRUE)
+
+  builder <- tf$saved_model$builder$SavedModelBuilder(export_dir_base)
+
+  builder$add_meta_graph_and_variables(
+    sess,
+    list(
+      tf$python$saved_model$tag_constants$SERVING
+    ),
+    signature_def_map = signature
+  )
+
+  invisible(builder$save())
+}
