@@ -1,6 +1,6 @@
 
 
-#' Install TensorFlow and it's dependencies
+#' Install TensorFlow and its dependencies
 #'
 #' @inheritParams reticulate::conda_list
 #'
@@ -180,7 +180,7 @@ install_tensorflow <- function(method = c("auto", "virtualenv", "conda", "system
         if (!have_system && !have_conda) {
           stop("Installing TensorFlow requires a 64-bit version of Python 3.5 or 3.6\n\n",
                "Please install 64-bit Python 3.5 or 3.6 to continue, supported versions include:\n\n",
-               " - Anaconda Python (Recommended): https://www.continuum.io/downloads#windows\n",
+               " - Anaconda Python (Recommended): https://www.anaconda.com/download/#windows\n",
                " - Python Software Foundation   : https://www.python.org/downloads/\n\n",
                call. = FALSE)
         } else if (have_conda) {
@@ -195,7 +195,7 @@ install_tensorflow <- function(method = c("auto", "virtualenv", "conda", "system
       # validate that we have conda
       if (!have_conda) {
         stop("Conda installation failed (no conda binary found)\n\n",
-             "Install Anaconda 3.x for Windows (https://www.continuum.io/downloads#windows)\n",
+             "Install Anaconda 3.x for Windows (https://www.anaconda.com/download/#windows)\n",
              "before installing TensorFlow.",
              call. = FALSE)
       }
@@ -280,16 +280,15 @@ install_tensorflow_conda <- function(conda, version, gpu, packages, extra_packag
 
   # determine tf version
   if (version == "latest") {
-    cat("Determining latest release of TensorFlow...")
+    cat("Determining latest installable release of TensorFlow...")
     releases <- fromJSON("https://api.github.com/repos/tensorflow/tensorflow/releases")
     latest <- subset(releases, grepl("^v\\d+\\.\\d+\\.\\d+$", releases$tag_name))$tag_name[[1]]
     version <- sub("v", "", latest)
-    # workaround the fact that v1.3.1 is a GitHub only release w/ no tarball
-    if (identical(version, "1.3.1"))
-      version <- "1.3.0"
-    # workaround the fact that v1.4.1 is a GitHub only release w/ no tarball
-    if (identical(version, "1.4.1"))
-      version <- "1.4.0"
+    # workaround the fact that v1.X.1 releases often have no tarball
+    version_split <- strsplit(version, ".", fixed = TRUE)[[1]]
+    if (length(version_split) > 2 && version_split[[length(version_split)]] != "0")
+      version_split <- c(version_split[-length(version_split)], "0")
+    version <- paste(version_split, collapse = ".")
     cat("done\n")
   }
 
@@ -314,6 +313,9 @@ install_tensorflow_conda <- function(conda, version, gpu, packages, extra_packag
 
   # determine packages url if necessary
   if (is.null(packages)) {
+    # version must have 3 digits
+    if (grepl("^\\d+\\.\\d+$", version))
+      version <- paste0(version, ".0")
     platform <- ifelse(is_windows(), "windows", ifelse(is_osx(), "mac", "linux"))
     packages <- sprintf(
       "https://storage.googleapis.com/tensorflow/%s/%s/tensorflow%s-%s-%s-%s.whl",
@@ -501,7 +503,7 @@ parse_tensorflow_version <- function(version) {
 }
 
 python_unix_binary <- function(bin) {
-  locations <- file.path(c("/usr/bin", "/usr/local/bin"), bin)
+  locations <- file.path(c("/usr/bin", "/usr/local/bin", path.expand("~/.local/bin")), bin)
   locations <- locations[file.exists(locations)]
   if (length(locations) > 0)
     locations[[1]]
