@@ -21,6 +21,8 @@
 #'   Alternatively, you can provide the full URL to an installer binary (e.g.
 #'   for a nightly binary).
 #'
+#' @param envname Name of Python environment to install within
+#'
 #' @param extra_packages Additional Python packages to install along with
 #'   TensorFlow.
 #'
@@ -33,7 +35,8 @@
 install_tensorflow <- function(method = c("auto", "virtualenv", "conda", "system"),
                                conda = "auto",
                                version = "default",
-                               extra_packages = NULL,
+                               envname = "r-tensorflow",
+                               extra_packages = c("keras", "tensorflow-hub"),
                                restart_session = TRUE) {
 
   # verify os
@@ -72,8 +75,8 @@ install_tensorflow <- function(method = c("auto", "virtualenv", "conda", "system
   system_available <- is_windows() && method_available("site")
 
   # resolve and look for conda
-  conda <- tryCatch(conda_binary(conda), error = function(e) NULL)
-  have_conda <- conda_available && !is.null(conda)
+  conda_bin <- tryCatch(conda_binary(conda), error = function(e) NULL)
+  have_conda <- conda_available && !is.null(conda_bin)
 
   # mac and linux
   if (is_unix()) {
@@ -86,17 +89,25 @@ install_tensorflow <- function(method = c("auto", "virtualenv", "conda", "system
         stop("Conda installation failed (no conda binary found)\n", call. = FALSE)
 
       # do install
-      install_tensorflow_conda(conda, version, gpu, packages, extra_packages)
+      install_tensorflow_conda(conda, version, gpu, envname, packages, extra_packages)
 
     } else {
 
       # find system python binary
+      pyver <- ""
       python <- python_unix_binary("python")
-      if (is.null(python))
-        stop("Unable to locate Python on this system.", call. = FALSE)
+      if (is.null(python)) {
+        # try for python3 if we are on linux
+        if (is_linux()) {
+          python <- python_unix_binary("python3")
+          if (is.null(python))
+            stop("Unable to locate Python on this system.", call. = FALSE)
+          pyver <- "3"
+        }
+      }
 
       # find other required tools
-      pip <- python_unix_binary("pip")
+      pip <- python_unix_binary(paste0("pip", pyver))
       have_pip <- !is.null(pip)
       virtualenv <- python_unix_binary("virtualenv")
       have_virtualenv <- virtualenv_available && !is.null(virtualenv)
@@ -104,7 +115,7 @@ install_tensorflow <- function(method = c("auto", "virtualenv", "conda", "system
       # if we don't have pip and virtualenv then try for conda if it's allowed
       if ((!have_pip || !have_virtualenv) && have_conda) {
 
-        install_tensorflow_conda(conda, version, gpu, packages, extra_packages)
+        install_tensorflow_conda(conda, version, gpu, envname, packages, extra_packages)
 
 
       # otherwise this is either an "auto" installation w/o working conda
@@ -124,14 +135,18 @@ install_tensorflow <- function(method = c("auto", "virtualenv", "conda", "system
           if (!is.null(install_commands))
             install_commands <- paste(install_commands, collapse = "\n")
         } else if (is_ubuntu()) {
-          if (!have_pip)
-            install_commands <- c(install_commands, "python-pip")
-          if (!have_virtualenv)
-            install_commands <- c(install_commands, "python-virtualenv")
-          if (!is.null(install_commands)) {
-            install_commands <- paste("$ sudo apt-get install",
-                                      paste(install_commands, collapse = " "))
+          if (!have_pip) {
+            install_commands <- c(install_commands, paste0("$ sudo apt-get install python", pyver ,"-pip"))
+            pip <- paste0("/usr/bin/pip", pyver)
           }
+          if (!have_virtualenv) {
+            if (identical(pyver, "3"))
+              install_commands <- c(install_commands, paste("$ sudo", pip, "install virtualenv"))
+            else
+              install_commands <- c(install_commands, "$ sudo apt-get install python-virtualenv")
+          }
+          if (!is.null(install_commands))
+            install_commands <- paste(install_commands, collapse = "\n")
         } else {
           if (!have_pip)
             install_commands <- c(install_commands, "pip")
@@ -157,7 +172,7 @@ install_tensorflow <- function(method = c("auto", "virtualenv", "conda", "system
         }
 
         # do the install
-        install_tensorflow_virtualenv(python, virtualenv, version, gpu, packages, extra_packages)
+        install_tensorflow_virtualenv(python, virtualenv, version, gpu, envname, packages, extra_packages)
 
       }
     }
@@ -201,7 +216,7 @@ install_tensorflow <- function(method = c("auto", "virtualenv", "conda", "system
       }
 
       # do the install
-      install_tensorflow_conda(conda, version, gpu, packages, extra_packages)
+      install_tensorflow_conda(conda, version, gpu, envname, packages, extra_packages)
 
     } else if (identical(method, "system")) {
 
@@ -232,21 +247,19 @@ install_tensorflow <- function(method = c("auto", "virtualenv", "conda", "system
   invisible(NULL)
 }
 
-install_tensorflow_conda <- function(conda, version, gpu, packages, extra_packages = NULL) {
+install_tensorflow_conda <- function(conda, version, gpu, envname, packages, extra_packages = NULL) {
 
-  # create conda environment if we need to
-  envname <- "r-tensorflow"
+  # remove existing conda environment if we need to (necessary to work around TF upgrade bugs)
   conda_envs <- conda_list(conda = conda)
   conda_env <- subset(conda_envs, conda_envs$name == envname)
-  if (nrow(conda_env) == 1) {
-    cat("Using", envname, "conda environment for TensorFlow installation\n")
-    python <- conda_env$python
-  }
-  else {
-    cat("Creating", envname, "conda environment for TensorFlow installation...\n")
-    python_packages <- ifelse(is_windows(), "python=3.6", "python")
-    python <- conda_create(envname, packages = python_packages, conda = conda)
-  }
+  if (nrow(conda_env) == 1)
+    conda_remove(envname, conda = conda)
+
+  # create conda environment
+  cat("Creating", envname, "conda environment for TensorFlow installation...\n")
+  python_packages <- "python=3.6" # as of TF v1.9 there are no python 3.7 binaries
+  python <- conda_create(envname, packages = python_packages, conda = conda)
+
 
   # Short circuit to install everything with conda when no custom packages
   # (typically tf-nightly or a daily build URL) and no gpu-enabled build
@@ -369,7 +382,7 @@ conda_forge_install <- function(envname, packages, conda = "auto") {
 
 
 
-install_tensorflow_virtualenv <- function(python, virtualenv, version, gpu, packages, extra_packages = NULL) {
+install_tensorflow_virtualenv <- function(python, virtualenv, version, gpu, envname, packages, extra_packages = NULL) {
 
   # determine python version to use
   is_python3 <- python_version(python) >= "3.0"
@@ -383,20 +396,43 @@ install_tensorflow_virtualenv <- function(python, virtualenv, version, gpu, pack
   # helper to construct paths to virtualenv binaries
   virtualenv_bin <- function(bin) path.expand(file.path(virtualenv_path, "bin", bin))
 
-  # create virtualenv if necessary
-  virtualenv_path <- file.path(virtualenv_root, "r-tensorflow")
-  if (!file.exists(virtualenv_path) || !file.exists(virtualenv_bin("activate"))) {
-    cat("Creating virtualenv for TensorFlow at ", virtualenv_path, "\n")
-    result <- system2(virtualenv, shQuote(c(
-      "--system-site-packages",
-      "--python", python,
-      path.expand(virtualenv_path)))
-    )
-    if (result != 0L)
-      stop("Error ", result, " occurred creating virtualenv at ", virtualenv_path,
-           call. = FALSE)
-  } else {
-    cat("Using existing virtualenv at ", virtualenv_path, "\n")
+  # destroy and re-create virtualenv (necessary to work around tf upgrade bugs)
+  virtualenv_path <- file.path(virtualenv_root, envname)
+  if (dir_exists(virtualenv_path))
+    unlink(virtualenv_path, recursive = TRUE)
+  cat("Creating virtualenv for TensorFlow at ", virtualenv_path, "\n")
+  result <- system2(virtualenv, shQuote(c(
+    "--system-site-packages",
+    "--python", python,
+    path.expand(virtualenv_path)))
+  )
+  if (result != 0L)
+    stop("Error ", result, " occurred creating virtualenv at ", virtualenv_path,
+         call. = FALSE)
+
+
+  # see what version of pip is installed (assume 0.1 on error)
+  installed_pip_version <- function() {
+    tryCatch({
+      # check existing version
+      cmd <- sprintf("%ssource %s && %s --version%s",
+                     ifelse(is_osx(), "", "/bin/bash -c \""),
+                     shQuote(path.expand(virtualenv_bin("activate"))),
+                     shQuote(path.expand(virtualenv_bin(pip_version))),
+                     ifelse(is_osx(), "", "\""))
+      result <- system(cmd, intern = TRUE, ignore.stderr = TRUE)
+
+      # parse result
+      matches <- regexec("^[^ ]+\\s+(\\d+)\\.(\\d+).*$", result)
+      matches <- regmatches(result, matches)[[1]]
+
+      # return as R numeric version
+      numeric_version(paste(matches[[2]], matches[[3]], sep = "."))
+
+    }, error = function(e) {
+      warning("Error occurred checking pip version: ", e$message)
+      numeric_version("0.1")
+    })
   }
 
   # function to call pip within virtual env
@@ -413,14 +449,12 @@ install_tensorflow_virtualenv <- function(python, virtualenv, version, gpu, pack
       stop("Error ", result, " occurred installing TensorFlow", call. = FALSE)
   }
 
-  # upgrade pip so it can find tensorflow
-  pip_install("pip", "Upgrading pip")
-
-  # install updated version of the wheel package
-  pip_install("wheel", "Upgrading wheel")
-
-  # upgrade setuptools so it can use wheels
-  pip_install("setuptools", "Upgrading setuptools")
+  # upgrade pip and related utilities if its older than 8.1
+  if (installed_pip_version() < "8.1") {
+    pip_install("pip", "Upgrading pip")
+    pip_install("wheel", "Upgrading wheel")
+    pip_install("setuptools", "Upgrading setuptools")
+  }
 
   # install tensorflow and related dependencies
   pkgs <- tf_pkgs(version, gpu, packages, scipy = TRUE, extra_packages = extra_packages)
@@ -541,7 +575,7 @@ tf_pkgs <- function(version, gpu, packages, scipy = TRUE, extra_packages = NULL)
   c(packages, tf_extra_pkgs(scipy = scipy, extra_packages = extra_packages))
 }
 
-# additional dependencies to install (required by some features of keras)
+# additional dependencies to install (required for keras)
 tf_extra_pkgs <- function(scipy = TRUE, extra_packages = NULL) {
   pkgs <- c("h5py", "pyyaml",  "requests",  "Pillow")
   pkgs <- c(pkgs, extra_packages)
@@ -550,86 +584,6 @@ tf_extra_pkgs <- function(scipy = TRUE, extra_packages = NULL) {
   else
     pkgs
 }
-
-
-#' Install additional Python packages alongside TensorFlow
-#'
-#' @param packages Python packages to install
-#' @param conda Path to conda executable (or "auto" to find conda using the PATH
-#'   and other conventional install locations). Only used when TensorFlow is
-#'   installed within a conda environment.
-#'
-#' @details
-#'
-#' This function requires a version of TensorFlow previously installed
-#' via the [install_tensorflow()] function.
-#'
-#' For virtualenv and conda installations, the specified packages will be
-#' installed into the "r-tensorflow" environment. For system installations
-#' on Windows the specified packages will be installed into the system
-#' package library.
-#'
-#' @export
-install_tensorflow_extras <- function(packages, conda = "auto") {
-
-  # ensure we call this in a fresh session on windows (avoid DLL
-  # in use errors)
-  if (is_windows() && py_available()) {
-    stop("You should call install_tensorflow_extras() only in a fresh ",
-         "R session that has not yet initialized TensorFlow (this is ",
-         "to avoid DLL in use errors during installation)")
-  }
-
-  # examime config (this does not yet initialize python, important to avoid
-  # DLL in use errors on Windows)
-  config <- py_discover_config("tensorflow")
-
-  # if we don't have tensorflow then automatically install it and then
-  # rediscover the config
-  if (is.null(config$required_module_path)) {
-    install_tensorflow(conda = conda)
-    config <- py_discover_config("tensorflow")
-  }
-
-  # determine which type of tensorflow installation we have
-  if (is_windows()) {
-    if (config$anaconda)
-      type <- "conda"
-    else
-      type <- "system"
-  } else {
-    if (nzchar(config$virtualenv_activate))
-      type <- "virtualenv"
-    else
-      type <- "conda"
-  }
-
-  # if this is a virtualenv or conda based installation then confirm we are within
-  # an "r-tensorflow" environment (i.e. installed via install_tensorflow())
-  if (type %in% c("virtualenv", "conda")) {
-    python_binary <- ifelse(is_windows(), "r-tensorflow\\python.exe", "r-tensorflow/bin/python")
-    if (!grepl(paste0(python_binary, "$"), config$python)) {
-      stop("You must be using a version of TensorFlow installed with the ",
-           "install_tensorflow() function in order\n",
-           "to install packages with the install_tensorflow_extras() function. ",
-           "The version of TensorFlow\ncurrently in use is installed at ",
-           aliased(tf_config()$location))
-    }
-  }
-
-  # perform the installation
-  if (identical(type, "conda")) {
-    if (is_windows())
-      conda_forge_install("r-tensorflow", packages, conda = conda)
-    else
-      conda_install("r-tensorflow", packages, pip = TRUE, conda = conda)
-  }
-  else if (identical(type, "virtualenv"))
-    virtualenv_install("r-tensorflow", packages)
-  else if (identical(type, "system"))
-    windows_system_install(config$python, packages)
-}
-
 
 
 virtualenv_install <- function(envname, packages) {
@@ -675,6 +629,23 @@ windows_system_install <- function(python, packages) {
                            paste(shQuote(packages), collapse = " ")))
   if (result != 0L)
     stop("Error ", result, " occurred installing tensorflow package", call. = FALSE)
+}
+
+#' Install additional Python packages alongside TensorFlow
+#'
+#' This function is deprecated. Use the `extra_packages` argument to
+#' `install_tensorflow()` to install additional packages.
+#'
+#' @param packages Python packages to install
+#' @param conda Path to conda executable (or "auto" to find conda using the PATH
+#'   and other conventional install locations). Only used when TensorFlow is
+#'   installed within a conda environment.
+#'
+#' @export
+install_tensorflow_extras <- function(packages, conda = "auto") {
+  message("Extra packates not installed (this function is deprecated). \n",
+          "Use the extra_packages argument to install_tensorflow() to ",
+          "install additional packages.")
 }
 
 

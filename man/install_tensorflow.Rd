@@ -5,8 +5,8 @@
 \title{Install TensorFlow and its dependencies}
 \usage{
 install_tensorflow(method = c("auto", "virtualenv", "conda", "system"),
-  conda = "auto", version = "default", extra_packages = NULL,
-  restart_session = TRUE)
+  conda = "auto", version = "default", envname = "r-tensorflow",
+  extra_packages = c("keras", "tensorflow-hub"), restart_session = TRUE)
 }
 \arguments{
 \item{method}{Installation method. By default, "auto" automatically finds a
@@ -28,6 +28,8 @@ appending "-gpu" if you want the GPU version (e.g. "1.1.0-gpu").
 
 Alternatively, you can provide the full URL to an installer binary (e.g.
 for a nightly binary).}
+
+\item{envname}{Name of Python environment to install within}
 
 \item{extra_packages}{Additional Python packages to install along with
 TensorFlow.}

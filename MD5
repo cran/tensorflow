@@ -1,13 +1,13 @@
-4214337a7fa5e3b23a0ac4a9674f5383 *DESCRIPTION
-41a24db16f9900815afe80101b84b617 *NAMESPACE
+7519ae169a7bb7d557e9fefb350de3b0 *DESCRIPTION
+287e1405280572882bda36e642f563d1 *NAMESPACE
 68d834ed4ccd8533dc235b694808e3d1 *R/arguments.R
-8f69b931bcb3d0268aca5c0b1e091d42 *R/eager.R
+eab7995b805fe0e3b0d68d76d99e70e6 *R/eager.R
 c15bbde2ebe0b5d5ec6fa8de1bd111ee *R/estimator-generics.R
-0c4c80c21fb295650b73052c23c404ef *R/extract.R
+19c48379f60504654977d62bddc27967 *R/extract.R
 7b78d237b223c4a02ab85d01d5d23683 *R/flags.R
-f4b41a640082afcfeb8bb91441a5e333 *R/generics.R
+0226d35963be81f52d7456a558ba6469 *R/generics.R
 f85078163a36c0bf092adc04df076bd9 *R/help.R
-9679cc9ee3bcba82a4cdcf53b2be7145 *R/install.R
+bc6d2e891b326e2d6e4fff1f0416ce15 *R/install.R
 22e567986500e489ed5f07a65e635a16 *R/modules.R
 6f76a4de5bc8212e9557376a118e6b10 *R/package.R
 5d10af460d836b537cae671b5c6b7051 *R/reexports.R
@@ -15,7 +15,7 @@ bd1082b4bd8dee8d85cfeeab7b2471b5 *R/save.R
 6d9612e6a1d733741812c08ea39cf17d *R/seed.R
 098424ee817606e5e17832e9a963dbd9 *R/tensorboard.R
 bc2ef802b8079ecec7cc2892efe2edab *R/types.R
-f10608a3289fb4715b1c307843f35592 *R/utils.R
+d00fcf353b43772bd3aa6c7622e59f04 *R/utils.R
 f373ce55aea2467fd1d2254ae63454c4 *inst/examples/config/flags.yml
 6fc7b473109586de922012d1c1fd94da *inst/examples/hello.R
 b303ce7a164343a30bf96752cc012dcf *inst/examples/introduction.R
@@ -27,8 +27,8 @@ a9cdf376846354e727f85eedc0e665bd *inst/examples/mnist/mnist_softmax.R
 fab6059e84db93e8100911786bb9f1b1 *man/all_dims.Rd
 c3045ce96c383788f9a634e6978faadd *man/evaluate.Rd
 247da84bf072b98aa6fa3ea8cb42f34e *man/export_savedmodel.Rd
-a403c20485abeeecba46eed8b5af7697 *man/install_tensorflow.Rd
-0928280dd9510f582e21efde36146441 *man/install_tensorflow_extras.Rd
+df49546f6cfb0cb3aeb4384c288df21e *man/install_tensorflow.Rd
+b3a14b8cadd789cd57234658fa1e8472 *man/install_tensorflow_extras.Rd
 760ef836e031cb5ed5fb6884975e76a3 *man/parse_arguments.Rd
 81d30e07290c0d7767e37cc620cb09ab *man/parse_flags.Rd
 3027ab901a5d6b36e3c5c00b7d51f6be *man/reexports.Rd
@@ -48,5 +48,5 @@ c1fd21cb2c269f1ff3679376a7902102 *tests/testthat.R
 911be869ba4a2ea4f8947d05676f3b15 *tests/testthat/test-arguments.R
 d7f14452ea44ab0f1833365ad7312774 *tests/testthat/test-examples.R
 2d1d5352b34749c5942ecb320bc744c3 *tests/testthat/test-export-savedmodel.R
-037c80ad1ce86f6991696da759eda7d6 *tests/testthat/test-extract-syntax.R
+cf6186b2a7b243b8fe50c7bb7d865b4e *tests/testthat/test-extract-syntax.R
 03ea5f1c3e1a0449ff4d962c09e6a1ff *tests/testthat/utils.R

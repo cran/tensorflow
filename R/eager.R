@@ -51,7 +51,7 @@ tfe_enable_eager_execution <- function(
     warn = tfe$DEVICE_PLACEMENT_WARN,
     silent = tfe$DEVICE_PLACEMENT_SILENT
   )
-  
+
   # enter eager mode
   if (tf_version() >= '1.7') {
     enable_eager_execution_fn <- tf$python$framework$ops$enable_eager_execution
@@ -74,6 +74,9 @@ as.array.python.builtin.EagerTensor <- function(x, ...) {
     x$numpy()
 }
 
+#' @export
+as.array.tensorflow.python.framework.ops.EagerTensor <- as.array.python.builtin.EagerTensor
+
 
 #' @export
 as.matrix.python.builtin.EagerTensor <- function(x, ...) {
@@ -89,12 +92,20 @@ as.matrix.python.builtin.EagerTensor <- function(x, ...) {
 }
 
 #' @export
+as.matrix.tensorflow.python.framework.ops.EagerTensor <- as.matrix.python.builtin.EagerTensor
+
+#' @export
 as.integer.python.builtin.EagerTensor <- function(x, ...) {
   if (py_is_null_xptr(x))
     NULL
   else
     as.integer(as.array(x))
 }
+
+#' @export
+as.integer.tensorflow.python.framework.ops.EagerTensor <- as.integer.python.builtin.EagerTensor
+
+
 
 #' @export
 as.numeric.python.builtin.EagerTensor <- function(x, ...) {
@@ -105,6 +116,10 @@ as.numeric.python.builtin.EagerTensor <- function(x, ...) {
 }
 
 #' @export
+as.numeric.tensorflow.python.framework.ops.EagerTensor <- as.numeric.python.builtin.EagerTensor
+
+
+#' @export
 as.double.python.builtin.EagerTensor <- function(x, ...) {
   if (py_is_null_xptr(x))
     NULL
@@ -113,9 +128,20 @@ as.double.python.builtin.EagerTensor <- function(x, ...) {
 }
 
 #' @export
+as.double.tensorflow.python.framework.ops.EagerTensor <- as.double.python.builtin.EagerTensor
+
+
+#' @export
 as.logical.python.builtin.EagerTensor <- function(x, ...) {
   if (py_is_null_xptr(x))
     NULL
   else
     as.logical(as.array(x))
 }
+
+#' @export
+as.logical.tensorflow.python.framework.ops.EagerTensor <- as.logical.python.builtin.EagerTensor
+
+
+
+
