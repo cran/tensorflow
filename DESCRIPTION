@@ -1,9 +1,10 @@
 Package: tensorflow
 Type: Package
 Title: R Interface to 'TensorFlow'
-Version: 1.10
+Version: 1.13.1
 Authors@R: c(
-  person("JJ", "Allaire", role = c("aut", "cre"), email = "jj@rstudio.com"),
+  person("Daniel", "Falbel", role = c("ctb", "cph", "cre"), email = "daniel@rstudio.com"),
+  person("JJ", "Allaire", role = c("aut", "cph")),
   person(family = "RStudio", role = c("cph", "fnd")),
   person("Yuan", "Tang", role = c("aut", "cph"),
          email = "terrytangyuan@gmail.com",
@@ -38,16 +39,17 @@ Depends: R (>= 3.1)
 Imports: config, jsonlite (>= 1.2), processx, reticulate (>= 1.10),
         tfruns (>= 1.0), utils, yaml, rstudioapi (>= 0.7)
 Suggests: testthat, keras, tfestimators
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
 NeedsCompilation: no
-Packaged: 2018-11-19 17:55:18 UTC; jjallaire
-Author: JJ Allaire [aut, cre],
+Packaged: 2019-04-05 02:01:45 UTC; dfalbel
+Author: Daniel Falbel [ctb, cph, cre],
+  JJ Allaire [aut, cph],
   RStudio [cph, fnd],
   Yuan Tang [aut, cph] (<https://orcid.org/0000-0001-5243-233X>),
   Dirk Eddelbuettel [ctb, cph],
   Nick Golding [ctb, cph],
   Tomasz Kalinowski [ctb, cph],
   Google Inc. [ctb, cph] (Examples and Tutorials)
-Maintainer: JJ Allaire <jj@rstudio.com>
+Maintainer: Daniel Falbel <daniel@rstudio.com>
 Repository: CRAN
-Date/Publication: 2018-11-19 18:50:03 UTC
+Date/Publication: 2019-04-05 12:50:03 UTC

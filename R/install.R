@@ -36,7 +36,7 @@ install_tensorflow <- function(method = c("auto", "virtualenv", "conda", "system
                                conda = "auto",
                                version = "default",
                                envname = "r-tensorflow",
-                               extra_packages = c("keras", "tensorflow-hub"),
+                               extra_packages = NULL,
                                restart_session = TRUE) {
 
   # verify os
@@ -67,6 +67,17 @@ install_tensorflow <- function(method = c("auto", "virtualenv", "conda", "system
   version <- ver$version
   gpu <- ver$gpu
   packages <- ver$packages
+
+  # extra packages
+  extra_packages <- unique(c(extra_packages, c("keras", "tensorflow-hub")))
+  if (version == "nightly") {
+    extra_packages <- unique(c(extra_packages, "tfp-nightly"))
+    extra_packages <- setdiff(extra_packages, "tensorflow-probability")
+  }
+  if (version == "default" || substr(version, 1, 4) %in% c("1.12", "1.13")) {
+    extra_packages <- unique(c(extra_packages, "tensorflow-probability"))
+    extra_packages <- setdiff(extra_packages, ("tfp-nightly"))
+  }
 
   # flags indicating what methods are available
   method_available <- function(name) method %in% c("auto", name)
@@ -257,7 +268,12 @@ install_tensorflow_conda <- function(conda, version, gpu, envname, packages, ext
 
   # create conda environment
   cat("Creating", envname, "conda environment for TensorFlow installation...\n")
-  python_packages <- "python=3.6" # as of TF v1.9 there are no python 3.7 binaries
+  if (substr(version, 1, 4) == "1.13") {
+    python_packages <- "python=3.7"
+  } else {
+    python_packages <- "python=3.6"
+  }
+
   python <- conda_create(envname, packages = python_packages, conda = conda)
 
 
@@ -492,20 +508,15 @@ parse_tensorflow_version <- function(version) {
     packages = NULL
   )
 
-  # note that TF v1.11 has an incompatibility with the R interface so we
-  # need to force v1.10.0 when version is "default" or "gpu"
-
   # full url provided
   if (identical(version, "default")) {
 
-    # default, force 1.10.0
-    ver$version <- "1.10.0"
+    ver$version <- "1.13.1"
 
   # gpu version
   } else if (identical(version, "gpu")) {
 
-    # default, force 1.10.0
-    ver$version <- "1.10.0"
+    ver$version <- "1.13.1"
 
     ver$gpu <- TRUE
 
@@ -532,11 +543,10 @@ parse_tensorflow_version <- function(version) {
   }
 
   # if it's the nightly version then set packages to nightly[-gpu]
-  # (also add tensorboard since it's not included in tf-nightly)
+  # as of 02/15/2019 tf-nightly includes tb-nightly, tf-estimator-nightly
   version <- sub("^tf-nightly$", "nightly", version)
   if (identical(version, "nightly")) {
-    ver$packages <- c(sprintf("tf-nightly%s", ifelse(ver$gpu, "-gpu", "")),
-                      "tensorflow-tensorboard")
+    ver$packages <- c(sprintf("tf-nightly%s", ifelse(ver$gpu, "-gpu", "")))
   }
 
   # return
@@ -650,7 +660,7 @@ windows_system_install <- function(python, packages) {
 #'
 #' @export
 install_tensorflow_extras <- function(packages, conda = "auto") {
-  message("Extra packates not installed (this function is deprecated). \n",
+  message("Extra packages not installed (this function is deprecated). \n",
           "Use the extra_packages argument to install_tensorflow() to ",
           "install additional packages.")
 }

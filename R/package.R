@@ -22,6 +22,10 @@
 #' @name tensorflow
 NULL
 
+tf_v2 <- function() {
+  package_version(tf_version()) >= "2.0"
+}
+
 # globals
 .globals <- new.env(parent = emptyenv())
 .globals$tensorboard <- NULL
@@ -32,6 +36,12 @@ NULL
   tensorflow_python <- Sys.getenv("TENSORFLOW_PYTHON", unset = NA)
   if (!is.na(tensorflow_python))
     Sys.setenv(RETICULATE_PYTHON = tensorflow_python)
+
+  # honor option to silence cpp startup logs (INFO, level 1),
+  # but insist on printing warnings (level 2) and errors (level 3)
+  cpp_log_opt <- getOption("tensorflow.core.cpp_min_log_level")
+  if (!is.null(cpp_log_opt))
+    Sys.setenv(TF_CPP_MIN_LOG_LEVEL = max(min(cpp_log_opt, 1), 0))
 
   # delay load tensorflow
   tf <<- import("tensorflow", delay_load = list(
@@ -45,17 +55,37 @@ NULL
       # register warning suppression handler
       register_suppress_warnings_handler(list(
         suppress = function() {
-          old_verbosity <- tf$logging$get_verbosity()
-          tf$logging$set_verbosity(tf$logging$ERROR)
-          old_verbosity
+          if (tf_v2()) {
+            tf_logger <- tf$get_logger()
+            logging <- reticulate::import("logging")
+
+            old_verbosity <- tf_logger$level
+            tf_logger$setLevel(logging$ERROR)
+            old_verbosity
+          }
+          else {
+            old_verbosity <- tf$logging$get_verbosity()
+            tf$logging$set_verbosity(tf$logging$ERROR)
+            old_verbosity
+          }
         },
         restore = function(context) {
-          tf$logging$set_verbosity(context)
+          if (tf_v2()) {
+            tf_logger <- tf$get_logger()
+            tf_logger$setLevel(context)
+          }
+          else {
+            tf$logging$set_verbosity(context)
+          }
         }
       ))
 
       # if we loaded tensorflow then register tf help handler
       register_tf_help_handler()
+
+      # workaround to silence crash-causing deprecation warnings
+      tryCatch(tf$python$util$deprecation$silence()$`__enter__`(),
+               error = function(e) NULL)
     }
     ,
 
@@ -102,23 +132,28 @@ tf_config <- function() {
   if (have_tensorflow) {
 
     # get version
-    tfv <- strsplit(tf$VERSION, ".", fixed = TRUE)[[1]]
+    if (reticulate::py_has_attr(tf, "version"))
+      version_raw <- tf$version$VERSION
+    else
+      version_raw <- tf$VERSION
+
+    tfv <- strsplit(version_raw, ".", fixed = TRUE)[[1]]
     version <- package_version(paste(tfv[[1]], tfv[[2]], sep = "."))
 
     structure(class = "tensorflow_config", list(
       available = TRUE,
       version = version,
-      version_str = tf$VERSION,
+      version_str = version_raw,
       location = config$required_module_path,
       python = config$python,
       python_version = config$version
     ))
 
-  # didn't find it
+    # didn't find it
   } else {
     structure(class = "tensorflow_config", list(
       available = FALSE,
-      python_verisons = config$python_versions,
+      python_versions = config$python_versions,
       error_message = tf_config_error_message()
     ))
   }
@@ -145,6 +180,33 @@ print.tensorflow_config <- function(x, ...) {
   } else {
     cat(x$error_message, "\n")
   }
+}
+
+#' TensorFlow GPU configuration information
+#'
+#' @return A bool, wether GPU is configured or not, or NA if could not be
+#' determined.
+#'
+#' @keywords internal
+#' @param verbose boolean. Wether to show extra GPU info.
+#' @export
+tf_gpu_configured <- function(verbose=TRUE) {
+  res <- tryCatch({
+    tf$test$is_gpu_available()
+  }, error = function(e) {
+    warning("Can not determine if GPU is configured.", call. = FALSE);
+    NA
+  })
+
+  if (!is.na(verbose) && is.logical(verbose) &&verbose) {
+    tryCatch({
+      cat(paste("TensorFlow built with CUDA: ", tf$test$is_built_with_cuda()),
+          "\n");
+      cat(paste("GPU device name: ", tf$test$gpu_device_name(),
+                collapse = "\n"))
+    }, error = function(e) {})
+  }
+  res
 }
 
 

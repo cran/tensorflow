@@ -205,9 +205,9 @@
 "log.tensorflow.tensor" <- function(x, base = exp(1)) {
   if (is_tensor(base) || base != exp(1)) {
     base <- tf$convert_to_tensor(base, x$dtype)
-    tf$log(x) / tf$log(base)
+    tf$math$log(x) / tf$math$log(base)
   } else
-    tf$log(x)
+    tf$math$log(x)
 }
 
 #' @export
@@ -284,4 +284,30 @@
 #' @export
 "digamma.tensorflow.tensor" <- function(x) {
   tf$digamma(x)
+}
+
+
+#' @export
+Re.tensorflow.tensor <- function(z) {
+  tf$real(z)
+}
+
+#' @export
+Im.tensorflow.tensor <- function(z) {
+  tf$imag(z)
+}
+
+#' @export
+Conj.tensorflow.tensor <- function(z) {
+  tf$conj(z)
+}
+
+#' @export
+Arg.tensorflow.tensor <- function(z) {
+  tf$angle(z)
+}
+
+#' @export
+Mod.tensorflow.tensor <- function(z) {
+  tf$abs(z)
 }
