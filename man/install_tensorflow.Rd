@@ -4,16 +4,17 @@
 \alias{install_tensorflow}
 \title{Install TensorFlow and its dependencies}
 \usage{
-install_tensorflow(method = c("auto", "virtualenv", "conda", "system"),
-  conda = "auto", version = "default", envname = "r-tensorflow",
-  extra_packages = NULL, restart_session = TRUE)
+install_tensorflow(method = c("auto", "virtualenv", "conda"),
+  conda = "auto", version = "default", envname = NULL,
+  extra_packages = NULL, restart_session = TRUE,
+  conda_python_version = "3.6", ...)
 }
 \arguments{
 \item{method}{Installation method. By default, "auto" automatically finds a
 method that will work in the local environment. Change the default to force
 a specific installation method. Note that the "virtualenv" method is not
 available on Windows (as this isn't supported by TensorFlow). Note also
-that since this command runs without privillege the "system" method is
+that since this command runs without privilege the "system" method is
 available only on Windows.}
 
 \item{conda}{Path to conda executable (or "auto" to find conda using the
@@ -36,6 +37,12 @@ TensorFlow.}
 
 \item{restart_session}{Restart R session after installing (note this will
 only occur within RStudio).}
+
+\item{conda_python_version}{the python version installed in the created conda
+environment. Python 3.6 is installed by default.}
+
+\item{...}{other arguments passed to \code{\link[reticulate:conda_install]{reticulate::conda_install()}} or
+\code{\link[reticulate:virtualenv_install]{reticulate::virtualenv_install()}}.}
 }
 \description{
 Install TensorFlow and its dependencies
