@@ -60,18 +60,7 @@ install_tensorflow <- function(method = c("auto", "virtualenv", "conda"),
   gpu <- ver$gpu
   package <- ver$package
 
-  # Packages in this list should always be installed.
-  default_packages <- c("tensorflow-hub")
-
-  # Resolve TF probability version.
-  if (!is.na(version) && substr(version, 1, 4) %in% c("1.12", "1.13", "1.14")) {
-    default_packages <- c(default_packages, "tensorflow-probability")
-  # install tfp-nightly
-  } else if (is.na(version) ||(substr(version, 1, 4) %in% c("2.0.") || version == "nightly")) {
-    default_packages <- c(default_packages, "tfp-nightly")
-  }
-
-  extra_packages <- unique(c(default_packages, extra_packages))
+  extra_packages <- unique(extra_packages)
 
   reticulate::py_install(
     packages       = c(package, extra_packages),
@@ -93,7 +82,7 @@ install_tensorflow <- function(method = c("auto", "virtualenv", "conda"),
 
 parse_tensorflow_version <- function(version) {
 
-  default_version <- "1.14.0"
+  default_version <- "2.0.0"
 
   ver <- list(
     version = default_version,

@@ -1,7 +1,7 @@
 Package: tensorflow
 Type: Package
 Title: R Interface to 'TensorFlow'
-Version: 1.14.0
+Version: 2.0.0
 Authors@R: c(
   person("Daniel", "Falbel", role = c("ctb", "cph", "cre"), email = "daniel@rstudio.com"),
   person("JJ", "Allaire", role = c("aut", "cph")),
@@ -41,7 +41,7 @@ Imports: config, jsonlite (>= 1.2), processx, reticulate (>= 1.10),
 Suggests: testthat, keras, tfestimators
 RoxygenNote: 6.1.1
 NeedsCompilation: no
-Packaged: 2019-08-01 12:44:21 UTC; dfalbel
+Packaged: 2019-10-02 17:26:13 UTC; dfalbel
 Author: Daniel Falbel [ctb, cph, cre],
   JJ Allaire [aut, cph],
   RStudio [cph, fnd],
@@ -52,4 +52,4 @@ Author: Daniel Falbel [ctb, cph, cre],
   Google Inc. [ctb, cph] (Examples and Tutorials)
 Maintainer: Daniel Falbel <daniel@rstudio.com>
 Repository: CRAN
-Date/Publication: 2019-08-01 13:30:02 UTC
+Date/Publication: 2019-10-02 17:50:02 UTC
