@@ -84,6 +84,13 @@ for (fun in tensor_generics) {
   test_generic(deparse(fun), fun, matrix(1:100))
 }
 
+
+test_that("lenght works", {
+  skip_if_no_tensorflow()
+  expect_identical(length(1L), length(tf$constant(1L)))
+})
+
+
 logical_generics <- list(
   `==`,
   `!=`,
@@ -165,6 +172,7 @@ generics <- list(
   round,
   exp,
   log,
+  log1p,
   log2,
   log10,
   cos,

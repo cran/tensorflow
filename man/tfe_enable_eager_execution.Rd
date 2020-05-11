@@ -4,8 +4,10 @@
 \alias{tfe_enable_eager_execution}
 \title{Enables, for the rest of the lifetime of this program, eager execution.}
 \usage{
-tfe_enable_eager_execution(config = NULL, device_policy = c("explicit",
-  "warn", "silent"))
+tfe_enable_eager_execution(
+  config = NULL,
+  device_policy = c("explicit", "warn", "silent")
+)
 }
 \arguments{
 \item{config}{(Optional) A \code{tf$ConfigProto()} protocol buffer with
@@ -36,7 +38,7 @@ library(tensorflow)
 tfe_enable_eager_execution()
 
 # create a random 10x10 matrix
-x <- tf$random_normal(shape(10, 10))
+x <- tf$random$normal(shape(10, 10))
 
 # use it in R via as.matrix()
 heatmap(as.matrix(x))
