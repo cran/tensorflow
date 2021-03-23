@@ -1,7 +1,7 @@
 Package: tensorflow
 Type: Package
 Title: R Interface to 'TensorFlow'
-Version: 2.2.0
+Version: 2.4.0
 Authors@R: c(
   person("Daniel", "Falbel", role = c("ctb", "cph", "cre"), email = "daniel@rstudio.com"),
   person("JJ", "Allaire", role = c("aut", "cph")),
@@ -39,11 +39,11 @@ Depends: R (>= 3.1)
 Imports: config, jsonlite (>= 1.2), processx, reticulate (>= 1.10),
         tfruns (>= 1.0), utils, yaml, rstudioapi (>= 0.7)
 Suggests: testthat (>= 2.1.0), keras, tfestimators, callr
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.1
 Config/reticulate: list( packages = list( list(package = "tensorflow",
         pip = TRUE) ) )
 NeedsCompilation: no
-Packaged: 2020-05-11 16:35:51 UTC; dfalbel
+Packaged: 2021-03-23 21:10:54 UTC; dfalbel
 Author: Daniel Falbel [ctb, cph, cre],
   JJ Allaire [aut, cph],
   RStudio [cph, fnd],
@@ -54,4 +54,4 @@ Author: Daniel Falbel [ctb, cph, cre],
   Google Inc. [ctb, cph] (Examples and Tutorials)
 Maintainer: Daniel Falbel <daniel@rstudio.com>
 Repository: CRAN
-Date/Publication: 2020-05-11 18:20:03 UTC
+Date/Publication: 2021-03-23 21:40:02 UTC

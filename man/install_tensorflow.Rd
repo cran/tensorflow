@@ -11,7 +11,7 @@ install_tensorflow(
   envname = NULL,
   extra_packages = NULL,
   restart_session = TRUE,
-  conda_python_version = "3.6",
+  conda_python_version = "3.7",
   ...
 )
 }
@@ -23,8 +23,9 @@ available on Windows (as this isn't supported by TensorFlow). Note also
 that since this command runs without privilege the "system" method is
 available only on Windows.}
 
-\item{conda}{Path to conda executable (or "auto" to find conda using the
-PATH and other conventional install locations).}
+\item{conda}{The path to a \code{conda} executable. Use \code{"auto"} to allow
+\code{reticulate} to automatically find an appropriate \code{conda} binary. See
+\strong{Finding Conda} for more details.}
 
 \item{version}{TensorFlow version to install. Up to and including TensorFlow 2.0,
 specify "default" to install the CPU version of the latest release;
@@ -49,8 +50,8 @@ only occur within RStudio).}
 \item{conda_python_version}{the python version installed in the created conda
 environment. Python 3.6 is installed by default.}
 
-\item{...}{other arguments passed to \code{\link[reticulate:conda_install]{reticulate::conda_install()}} or
-\code{\link[reticulate:virtualenv_install]{reticulate::virtualenv_install()}}.}
+\item{...}{other arguments passed to \code{\link[reticulate:conda-tools]{reticulate::conda_install()}} or
+\code{\link[reticulate:virtualenv-tools]{reticulate::virtualenv_install()}}.}
 }
 \description{
 Install TensorFlow and its dependencies
