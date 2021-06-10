@@ -1,3 +1,11 @@
+# tensorflow 2.5.0
+
+- Updated default Tensorflow version to 2.5.
+- Added support for additional arguments in `tf_function()` (e.g., `jit_compile`)
+- Added support for `expm1` S3 generic.
+- `tfe_enable_eager_execution` is deprecated. Eager mode has been the default since TF version 2.0.
+- Improved error message in `tf_config()` on unsuccessful installation.
+
 # tensorflow 2.4.0
 
 - Fixed error with `use_session_with_seed` (#428)
