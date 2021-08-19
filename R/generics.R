@@ -216,23 +216,25 @@ expm1.tensorflow.tensor <- function(x) {
 
 #' @export
 "log.tensorflow.tensor" <- function(x, base = exp(1)) {
-  if (is_tensor(base) || base != exp(1)) {
-    base <- tf$convert_to_tensor(base, x$dtype)
-    tf$math$log(x) / tf$math$log(base)
-  } else
+  if (missing(base) || identical(base, exp(1)))
     tf$math$log(x)
+  else {
+    base <- tf$convert_to_tensor(base, x$dtype)
+    tf$truediv(tf$math$log(x),
+               tf$math$log(base))
+  }
 }
 
 #' @export
 #' @method log2 tensorflow.tensor
 "log2.tensorflow.tensor" <- function(x) {
-  log(x, base = 2)
+  log.tensorflow.tensor(x, base = 2)
 }
 
 #' @export
 #' @method log10 tensorflow.tensor
 "log10.tensorflow.tensor" <- function(x) {
-  log(x, base = 10)
+  log.tensorflow.tensor(x, base = 10)
 }
 
 #' @export
@@ -262,19 +264,19 @@ log1p.tensorflow.tensor <- function(x) {
 #' @export
 #' @method sinpi tensorflow.tensor
 "sinpi.tensorflow.tensor" <- function(x) {
-  tf$sin(tf$constant(pi, dtype = x$dtype) * x)
+  tf$sin(tf$multiply(x, tf$constant(pi, x$dtype)))
 }
 
 #' @export
 #' @method cospi tensorflow.tensor
 "cospi.tensorflow.tensor" <- function(x) {
-  tf$cos(tf$constant(pi, x$dtype) * x)
+  tf$cos(tf$multiply(x, tf$constant(pi, x$dtype)))
 }
 
 #' @export
 #' @method tanpi tensorflow.tensor
 "tanpi.tensorflow.tensor" <- function(x) {
-  tf$tan(tf$constant(pi, x$dtype) * x)
+  tf$tan(tf$multiply(x, tf$constant(pi, x$dtype)))
 }
 
 #' @export
@@ -335,4 +337,60 @@ switch_fun_if_tf <- function(x, y, version = "1.14") {
     x
   else
     y
+}
+
+
+
+#' as_tensor
+#'
+#' Coerce objects to tensorflow tensors (potentially of a specific dtype). The
+#' provided default methods will call
+#' [`tf.convert_to_tensor`](https://www.tensorflow.org/api_docs/python/tf/convert_to_tensor)
+#' and [`tf.cast`](https://www.tensorflow.org/api_docs/python/tf/cast) as
+#' appropriate.
+#'
+#' @param x object to convert
+#' @param dtype `NULL`, a tensorflow dtype (`tf$int32`), or something coercible
+#'   to one (e.g. a string `"int32"`)
+#' @param ..., ignored
+#' @param name `NULL` or a string. Useful for debugging in graph mode, ignored
+#'   while in eager mode.
+#'
+#' @return a tensorflow tensor
+#'
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' as_tensor(42, "int32")
+#' as_tensor(as_tensor(42))
+#' }
+as_tensor <- function(x, dtype = NULL, ..., name = NULL) UseMethod("as_tensor")
+
+#' @rdname as_tensor
+#' @export
+as_tensor.default <- function(x, dtype = NULL, ..., name = NULL) {
+  x <- tf$convert_to_tensor(x, dtype_hint = dtype, name = name)
+  if (is.null(dtype))
+    x
+  else
+    tf$cast(x, dtype, name = name)
+}
+
+#' @rdname as_tensor
+#' @export
+as_tensor.double <- function(x, dtype = NULL, ..., name = NULL) {
+  if (!is.null(dtype)) {
+    dtype <- tf$as_dtype(dtype)
+    if (dtype$is_integer) {
+      # tf.cast() overflows quietly, at least R raises a warning (and produces NA)
+      if (dtype$max <= .Machine$integer.max)
+        storage.mode(x) <- "integer"
+
+      if (anyNA(x))
+        stop("converting R numerics with NA values to integer dtypes not supported")
+    }
+  }
+
+  NextMethod()
 }
