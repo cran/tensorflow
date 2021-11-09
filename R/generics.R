@@ -23,33 +23,23 @@
   names(flags)
 }
 
+
 #' @export
-"dim.tensorflow.tensor" <- function(x) {
-  if (py_is_null_xptr(x))
+dim.tensorflow.tensor <- function(x) {
+  x <- x$shape
+  if (is.na(length(x)))
     NULL
-  else {
-
-    if (inherits(x, "tensorflow.python.ops.ragged.ragged_tensor.RaggedTensor"))
-      shape <- x$shape
-    else
-      shape <- x$get_shape()
-
-    if (!is.null(shape$ndims))
-      shape$as_list()
-    else
-      NULL
-  }
+  else
+    as.integer(x)
 }
+
+
 
 #' @export
-"length.tensorflow.tensor" <- function(x) {
-  if (py_is_null_xptr(x))
-    length(NULL)
-  else if(identical(dx <- dim(x), list()))
-    1L
-  else
-    Reduce(`*`, dx)
+length.tensorflow.tensor <- function(x) {
+  x$shape$num_elements() %||% NA_integer_
 }
+
 
 # https://stat.ethz.ch/R-manual/R-devel/library/base/html/InternalMethods.html
 
@@ -59,7 +49,11 @@
 
 #' @export
 "+.tensorflow.tensor" <- function(a, b) {
-  if (missing(b)) a else tf$add(a, b)
+  if (missing(b)) a
+  else {
+    autocast_ab_to_tensors()
+    tf$add(a, b)
+  }
 }
 
 #' @export
@@ -70,6 +64,7 @@
     else
       tf$neg(a)
   } else {
+    autocast_ab_to_tensors()
     if (py_has_attr(tf, "subtract"))
       tf$subtract(a, b)
     else
@@ -80,6 +75,7 @@
 
 #' @export
 "*.tensorflow.tensor" <- function(a, b) {
+  autocast_ab_to_tensors()
   if (py_has_attr(tf, "multiply"))
     tf$multiply(a, b)
   else
@@ -88,36 +84,42 @@
 
 #' @export
 "/.tensorflow.tensor" <- function(a, b) {
+  autocast_ab_to_tensors()
   tf$truediv(a, b)
 }
 
 
 #' @export
 "%/%.tensorflow.tensor" <- function(a, b) {
+  autocast_ab_to_tensors()
   switch_fun_if_tf(tf$floordiv, tf$math$floordiv)(a, b)
 }
 
 
 #' @export
 "%%.tensorflow.tensor" <- function(a, b) {
+  autocast_ab_to_tensors()
   switch_fun_if_tf(tf$mod, tf$math$mod)(a, b)
 }
 
 
 #' @export
 "^.tensorflow.tensor" <- function(a, b) {
+  autocast_ab_to_tensors()
   tf$pow(a, b)
 }
 
 
 #' @export
 "&.tensorflow.tensor" <- function(a, b) {
+  autocast_ab_to_tensors()
   tf$logical_and(a, b)
 }
 
 
 #' @export
 "|.tensorflow.tensor" <- function(a, b) {
+  autocast_ab_to_tensors()
   tf$logical_or(a, b)
 }
 
@@ -130,36 +132,42 @@
 
 #' @export
 "==.tensorflow.tensor" <- function(a, b) {
+  autocast_ab_to_tensors()
   tf$equal(a, b)
 }
 
 
 #' @export
 "!=.tensorflow.tensor" <- function(a, b) {
+  autocast_ab_to_tensors()
   tf$not_equal(a, b)
 }
 
 
 #' @export
 "<.tensorflow.tensor" <- function(a, b) {
+  autocast_ab_to_tensors()
   tf$less(a, b)
 }
 
 
 #' @export
 "<=.tensorflow.tensor" <- function(a, b) {
+  autocast_ab_to_tensors()
   tf$less_equal(a, b)
 }
 
 
 #' @export
 ">.tensorflow.tensor" <- function(a, b) {
+  autocast_ab_to_tensors()
   tf$greater(a, b)
 }
 
 
 #' @export
 ">=.tensorflow.tensor" <- function(a, b) {
+  autocast_ab_to_tensors()
   tf$greater_equal(a, b)
 }
 
@@ -338,6 +346,26 @@ switch_fun_if_tf <- function(x, y, version = "1.14") {
   else
     y
 }
+
+
+# autocast_to_tensors <- function(a, b) {
+#   eval.parent(substitute({
+#     if (!inherits(a, "tensorflow.tensor") && inherits(b, "tensorflow.tensor"))
+#       a <- as_tensor(a, b$dtype)
+#     else if (!inherits(b, "tensorflow.tensor") && inherits(a, "tensorflow.tensor"))
+#       b <- as_tensor(b, a$dtype)
+#   }, list(a = substitute(a), b = substitute(b))))
+# }
+
+
+# TODO: do something similar for KerasTensor
+autocast_ab_to_tensors <- function()
+  eval.parent(quote({
+    if (!inherits(a, "tensorflow.tensor") && inherits(b, "tensorflow.tensor"))
+      a <- as_tensor(a, b$dtype)
+    else if (!inherits(b, "tensorflow.tensor") && inherits(a, "tensorflow.tensor"))
+      b <- as_tensor(b, a$dtype)
+  }))
 
 
 

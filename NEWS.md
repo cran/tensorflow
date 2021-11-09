@@ -1,4 +1,44 @@
-# tensorflow (development version)
+# tensorflow 2.7.0
+
+- Default Tensorflow version installed by `install_tensorflow()` updated to 2.7
+
+- Breaking changes:
+  - `shape()` now returns a `tf.TensorShape()` object
+    (Previously an R-list of `NULL`s or integers).
+  - `[` method for `tf.TensorShape()` objects also now returns a `tf.TensorShape()`.
+    Use `[[`, `as.numeric`, `as.integer`, and/or `as.list` to convert to R objects.
+  - `length()` method for `tensorflow.tensor` now returns `NA_integer_` for
+    tensors with not fully defined shapes. (previously a zero length integer vector).
+  - `dim()` method for `tensorflow.tensor` now returns an R integer vector
+    with `NA` for dimensions that are undefined.
+    (previously an R list with `NULL` for undefined dimension)
+
+- New S3 generics for `tf.TensorShape()`'s:
+  `c`, `length`, `[<-`, `[[<-`, `merge`, `==`, `!=`, `as_tensor()`,
+  `as.list`, `as.integer`, `as.numeric`, `as.double`, `py_str`
+  (joining previous generics `[` and `[[`).
+  See `?shape` for extended examples.
+
+- Ops S3 generics for `tensorflow.tensor`s that take two arguments now
+  automatically cast a supplied non-tensor to the dtype of the supplied tensor
+  that triggered the S3 dispatch. Casting is done via `as_tensor()`.
+  e.g., this now works:
+    ```
+    as_tensor(5L) - 2     # now returns tf.Tensor(3, shape=(), dtype=int32)
+    ```
+  previously it would raise an error:
+    ```
+    TypeError: `x` and `y` must have the same dtype, got tf.int32 != tf.float32
+    ```
+  Generics that now do autocasting:
+    +, -, *, /, %/%, %%, ^, &, |, ==, !=, <, <=, >, >=
+
+- `install_tensorflow()`: new argument with default `pip_ignore_installed = TRUE`. 
+  This ensures that all Tensorflow dependencies like Numpy are installed by pip 
+  rather than conda.
+
+- A message with the Tensorflow version is now shown when the
+  python module is loaded, e.g: "Loaded Tensorflow version 2.6.0"
 
 # tensorflow 2.6.0
 
@@ -8,7 +48,7 @@
 
 - Added S3 generic `as_tensor()`.
 
-- tfautograph added to Imports 
+- tfautograph added to Imports
 
 - jsonlite removed from Imports, tfestimators removed from Suggests
 
@@ -27,8 +67,8 @@
 
 - Fixed an issue where extra packages with version constraints like
   `install_tensorflow(extra_packages = "Pillow<8.3")` were not quoted properly.
-  
-- Fixed an issue where valid tensor-like objects supplied to 
+
+- Fixed an issue where valid tensor-like objects supplied to
   `log(x, base)`, `cospi()`, `tanpi()`, and `sinpi()` would raise an error.
 
 

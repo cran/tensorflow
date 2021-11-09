@@ -13,6 +13,7 @@ install_tensorflow(
   restart_session = TRUE,
   conda_python_version = "3.7",
   ...,
+  pip_ignore_installed = TRUE,
   python_version = conda_python_version
 )
 }
@@ -28,7 +29,7 @@ available on Windows.}
 
 \item{version}{TensorFlow version to install. Valid values include:
 \itemize{
-\item \code{"default"} installs  2.6
+\item \code{"default"} installs  2.7
 \item \code{"release"} installs the latest release version of tensorflow (which may
 be incompatible with the current version of the R package)
 \item A version specification like \code{"2.4"} or \code{"2.4.0"}. Note that if the patch
@@ -54,6 +55,11 @@ only occur within RStudio).}
 \item{...}{other arguments passed to \code{\link[reticulate:conda-tools]{reticulate::conda_install()}} or
 \code{\link[reticulate:virtualenv-tools]{reticulate::virtualenv_install()}}, depending on the \code{method} used.}
 
+\item{pip_ignore_installed}{Whether pip should ignore installed python
+packages and reinstall all already installed python packages. This defaults
+to \code{TRUE}, to ensure that TensorFlow dependencies like NumPy are compatible
+with the prebuilt TensorFlow binaries.}
+
 \item{python_version, conda_python_version}{the python version installed in
 the created conda environment. Ignored when attempting to install with a
 Python virtual environment.}
@@ -61,7 +67,7 @@ Python virtual environment.}
 \description{
 \code{install_tensorflow()} installs just the tensorflow python package and it's
 direct dependencies. For a more complete installation that includes
-additional optional dependencies, use \code{keras::install_keras()}.
+additional optional dependencies, use \code{\link[keras:install_keras]{keras::install_keras()}}.
 }
 \details{
 You may be prompted you if you want it to download and install
@@ -71,6 +77,9 @@ ensures that the R python installation is isolated from other python
 installations. All python packages will by default be installed into a
 self-contained conda or venv environment named "r-reticulate". Note that
 "conda" is the only supported method on Windows.
+
+If you initially declined the miniconda installation prompt, you can later
+manually install miniconda by running \code{\link[reticulate:install_miniconda]{reticulate::install_miniconda()}}.
 }
 \section{Custom Installation}{
  \code{install_tensorflow()} or
@@ -91,8 +100,8 @@ Tensorflow compatible with M1 macs. Installation instructions can be found
 at: \url{https://developer.apple.com/metal/tensorflow-plugin/}. Please note
 that this is an experimental build of both python and tensorflow. After
 following the instructions provided by Apple, you can advise reticulate to
-use that python installation by placing the following in your
-\code{.Renviron} file:
+use that python installation by placing the following in your \code{.Renviron}
+file:
 
 \code{RETICULATE_PYTHON = "~/miniforge3/bin/python"}
 }
@@ -110,5 +119,5 @@ for details.
 }
 
 \seealso{
-keras::install_keras()
+\code{\link[keras:install_keras]{keras::install_keras()}}
 }

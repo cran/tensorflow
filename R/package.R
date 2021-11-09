@@ -85,6 +85,11 @@ tf_v2 <- function() {
       # workaround to silence crash-causing deprecation warnings
       tryCatch(tf$python$util$deprecation$silence()$`__enter__`(),
                error = function(e) NULL)
+
+      # TODO: move this into .onAttach, where you either emit immediately if
+      # already loaded otherwise register emit hook for reticulate
+      emit <- get("packageStartupMessage") # R CMD check
+      emit("Loaded Tensorflow version ", tf$version$VERSION)
     }
     ,
 
@@ -241,5 +246,3 @@ tf_config_error_message <- function() {
                     "\nYou can install TensorFlow using the install_tensorflow() function.\n")
   message
 }
-
-

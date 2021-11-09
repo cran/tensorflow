@@ -2,7 +2,7 @@
 #'
 #' `install_tensorflow()` installs just the tensorflow python package and it's
 #' direct dependencies. For a more complete installation that includes
-#' additional optional dependencies, use `keras::install_keras()`.
+#' additional optional dependencies, use [`keras::install_keras()`].
 #'
 #' @details You may be prompted you if you want it to download and install
 #'   miniconda if reticulate did not find a non-system installation of python.
@@ -11,6 +11,9 @@
 #'   installations. All python packages will by default be installed into a
 #'   self-contained conda or venv environment named "r-reticulate". Note that
 #'   "conda" is the only supported method on Windows.
+#'
+#'   If you initially declined the miniconda installation prompt, you can later
+#'   manually install miniconda by running [`reticulate::install_miniconda()`].
 #'
 #' @section Custom Installation: `install_tensorflow()` or
 #'   `keras::install_keras()` isn't required to use tensorflow with the package.
@@ -28,8 +31,8 @@
 #'   at: \url{https://developer.apple.com/metal/tensorflow-plugin/}. Please note
 #'   that this is an experimental build of both python and tensorflow. After
 #'   following the instructions provided by Apple, you can advise reticulate to
-#'   use that python installation by placing the following in your
-#'   `.Renviron` file:
+#'   use that python installation by placing the following in your `.Renviron`
+#'   file:
 #'
 #'   ``` RETICULATE_PYTHON = "~/miniforge3/bin/python" ```
 #'
@@ -46,6 +49,7 @@
 #' @md
 #'
 #' @inheritParams reticulate::py_install
+#'
 #' @param version TensorFlow version to install. Valid values include:
 #'
 #'   +  `"default"` installs  `r default_version`
@@ -74,10 +78,15 @@
 #'   the created conda environment. Ignored when attempting to install with a
 #'   Python virtual environment.
 #'
-#' @param ... other arguments passed to [reticulate::conda_install()] or
-#'   [reticulate::virtualenv_install()], depending on the `method` used.
+#' @param pip_ignore_installed Whether pip should ignore installed python
+#'   packages and reinstall all already installed python packages. This defaults
+#'   to `TRUE`, to ensure that TensorFlow dependencies like NumPy are compatible
+#'   with the prebuilt TensorFlow binaries.
 #'
-#' @seealso keras::install_keras()
+#' @param ... other arguments passed to [`reticulate::conda_install()`] or
+#'   [`reticulate::virtualenv_install()`], depending on the `method` used.
+#'
+#' @seealso [`keras::install_keras()`]
 #'
 #' @export
 install_tensorflow <- function(method = c("auto", "virtualenv", "conda"),
@@ -88,6 +97,7 @@ install_tensorflow <- function(method = c("auto", "virtualenv", "conda"),
                                restart_session = TRUE,
                                conda_python_version = "3.7",
                                ...,
+                               pip_ignore_installed = TRUE,
                                python_version = conda_python_version) {
 
   # verify 64-bit
@@ -128,7 +138,6 @@ install_tensorflow <- function(method = c("auto", "virtualenv", "conda"),
   ))
 
   # don't double quote if packages were shell quoted already
-  # TODO: patch quoting in reticulate::pip_install, or maybe py_install()
   packages <- shQuote(gsub("[\"']", "", packages))
 
   # message("Installing the python pip packages :\n",
@@ -141,6 +150,7 @@ install_tensorflow <- function(method = c("auto", "virtualenv", "conda"),
     conda          = conda,
     python_version = python_version,
     pip            = TRUE,
+    pip_ignore_installed = pip_ignore_installed,
     ...
   )
 
@@ -155,7 +165,7 @@ install_tensorflow <- function(method = c("auto", "virtualenv", "conda"),
 }
 
 
-default_version <- numeric_version("2.6")
+default_version <- numeric_version("2.7")
 
 parse_tensorflow_version <- function(version) {
   # returns unquoted string directly passable to pip, e.g 'tensorflow==2.5.*'
