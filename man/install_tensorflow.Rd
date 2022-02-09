@@ -11,7 +11,7 @@ install_tensorflow(
   envname = NULL,
   extra_packages = NULL,
   restart_session = TRUE,
-  conda_python_version = "3.7",
+  conda_python_version = NULL,
   ...,
   pip_ignore_installed = TRUE,
   python_version = conda_python_version
@@ -24,12 +24,12 @@ a specific installation method. Note that the "virtualenv" method is not
 available on Windows.}
 
 \item{conda}{The path to a \code{conda} executable. Use \code{"auto"} to allow
-\code{reticulate} to automatically find an appropriate \code{conda} binary. See
-\strong{Finding Conda} for more details.}
+\code{reticulate} to automatically find an appropriate \code{conda} binary.
+See \strong{Finding Conda} and \code{\link[reticulate:conda-tools]{conda_binary()}} for more details.}
 
 \item{version}{TensorFlow version to install. Valid values include:
 \itemize{
-\item \code{"default"} installs  2.7
+\item \code{"default"} installs  2.8
 \item \code{"release"} installs the latest release version of tensorflow (which may
 be incompatible with the current version of the R package)
 \item A version specification like \code{"2.4"} or \code{"2.4.0"}. Note that if the patch
@@ -60,9 +60,11 @@ packages and reinstall all already installed python packages. This defaults
 to \code{TRUE}, to ensure that TensorFlow dependencies like NumPy are compatible
 with the prebuilt TensorFlow binaries.}
 
-\item{python_version, conda_python_version}{the python version installed in
-the created conda environment. Ignored when attempting to install with a
-Python virtual environment.}
+\item{python_version, conda_python_version}{Pass a string like "3.8" to
+request that conda install a specific Python version. This is ignored when
+attempting to install in a Python virtual environment. Note that the Python
+version must be compatible with the requested Tensorflow version, documented
+here: \url{https://www.tensorflow.org/install/pip#system-requirements}}
 }
 \description{
 \code{install_tensorflow()} installs just the tensorflow python package and it's
@@ -86,24 +88,26 @@ manually install miniconda by running \code{\link[reticulate:install_miniconda]{
 \code{keras::install_keras()} isn't required to use tensorflow with the package.
 If you manually configure a python environment with the required
 dependencies, you can tell R to use it by pointing reticulate at it,
-commonly by setting an environment variable:
-
-\code{Sys.setenv("RETICULATE_PYTHON" = "~/path/to/python-env/bin/python")}
+commonly by setting an environment variable:\if{html}{\out{<div class="sourceCode R">}}\preformatted{Sys.setenv("RETICULATE_PYTHON" = "~/path/to/python-env/bin/python")
+}\if{html}{\out{</div>}}
 }
 
 \section{Apple Silicon}{
  Tensorflow on Apple Silicon is not officially
-supported by the tensorflow maintainers. It is known that there can be
-issues running the official Tensorflow package under Rosetta as well.
-Fortunately, for the time being Apple has published a custom version of
-Tensorflow compatible with M1 macs. Installation instructions can be found
-at: \url{https://developer.apple.com/metal/tensorflow-plugin/}. Please note
-that this is an experimental build of both python and tensorflow. After
-following the instructions provided by Apple, you can advise reticulate to
-use that python installation by placing the following in your \code{.Renviron}
-file:
-
-\code{RETICULATE_PYTHON = "~/miniforge3/bin/python"}
+supported by the Tensorflow maintainers. However Apple has published a
+custom version of Tensorflow compatible with Arm Macs.
+\code{install_tensorflow()} will install the special packages \code{tensorflow-macos}
+and \code{tensorflow-metal} on Arm Macs. See
+\url{https://developer.apple.com/metal/tensorflow-plugin/} for instructions
+on how to do the equivalent manually. Please note that this is an
+experimental build of both Python and Tensorflow, with known issues. In
+particular, certain operations will cause errors, but can often be remedied
+by pinning them to the CPU. For example:\if{html}{\out{<div class="sourceCode R">}}\preformatted{x <- array(runif(64*64), c(1, 64, 64))
+keras::layer_random_rotation(x, .5)  # Error:
+# No registered 'RngReadAndSkip' OpKernel for 'GPU' devices
+# Pin the operation to the CPU to avoid the error
+with(tf$device("CPU"), keras::layer_random_rotation(x, .5) ) # No Error
+}\if{html}{\out{</div>}}
 }
 
 \section{Additional Packages}{

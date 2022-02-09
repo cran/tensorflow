@@ -26,6 +26,13 @@ is_ubuntu <- function() {
   }
 }
 
+
+is_mac_arm64 <- function() {
+  sys_info <- Sys.info()
+  sys_info[["sysname"]] == "Darwin" &&
+  sys_info[["machine"]] == "arm64"
+}
+
 dir_exists <- function(x) {
   utils::file_test('-d', x)
 }
@@ -50,4 +57,3 @@ call_hook <- function(name, ...) {
   })
   response
 }
-

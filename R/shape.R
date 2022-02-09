@@ -227,6 +227,22 @@ length.tensorflow.python.framework.tensor_shape.TensorShape <- function(x) {
   as_r_value(x$rank) %||% NA_integer_
 }
 
+#' @export
+format.tensorflow.python.framework.tensor_shape.TensorShape <-
+  function(x, ...) {
+    if (identical(as_r_value(x$rank), NULL))
+      "(<unknown>)"
+    else
+      sprintf("(%s)", paste0(as.integer(x), collapse = ", "))
+  }
+
+#' @export
+print.tensorflow.python.framework.tensor_shape.TensorShape <-
+  function(x, ...) {
+    writeLines(import_builtins()$repr(x))
+    invisible(x)
+  }
+
 
 #' @export
 py_str.tensorflow.python.framework.tensor_shape.TensorShape <-
@@ -262,27 +278,3 @@ shape_v1 <- function(...) {
       NULL
   })
 }
-
-
-#' # as.integer(), as.numeric(), as.double(), as_tensor() can take an
-#' # optional argument `unspecified`
-#' # Defaults to `NA` for as.integer, as.double, as.numeric, and `-1L` for as_tensor()
-#' x <- shape(NULL, 3)
-#' as.integer(x)                    # c(NA, 3L)
-#' as.integer(x, unspecified = -1)  # c(-1L, 3L)
-#' as.integer(x, -1)                # c(-1L, 3L) # can be supplied unnamed to as.integer, as.double, as.numeric
-#' as_tensor(x)                     # tf.Tensor([-1  3], shape=(2,), dtype=int32) # `unspecified` default is -1
-#'
-
-# as.integer.tensorflow.python.framework.tensor_shape.TensorShape <-
-# function(x, unspecified = NA_integer_, ...) {
-#   unspecified <- as.integer(unspecified)
-#   vapply(as.list(as_r_value(x$as_list())),
-#          function(e) e %||% unspecified,
-#          0L)
-# }
-
-# as_tensor.tensorflow.python.framework.tensor_shape.TensorShape <-
-# function(x, dtype = NULL, ..., unspecified = -1L, name = NULL) {
-#   as_tensor(as.integer(x, unspecified = unspecified), dtype, ...)
-# }

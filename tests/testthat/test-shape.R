@@ -1,4 +1,4 @@
-test_that("multiplication works", {
+test_that("shape() works", {
 
 
   skip_if_no_tensorflow()
@@ -135,5 +135,14 @@ test_that("multiplication works", {
 
   expect_error(merge(shape(2, 2),
                      shape(1, 2))) # ValueError: Shapes (2, 2) and (1, 2) are not compatible
+
+
+  expect_output(print(shape(3)), "TensorShape([3])", fixed = TRUE)
+  expect_output(print(shape(3, NA)), "TensorShape([3, None])", fixed = TRUE)
+  expect_output(print(shape(3, NULL)), "TensorShape([3, None])", fixed = TRUE)
+
+  expect_equal(format(shape(3)), "(3)")
+  expect_equal(format(shape(3, NA)), "(3, NA)")
+  expect_equal(format(shape(3, NULL)), "(3, NA)")
 
 })
