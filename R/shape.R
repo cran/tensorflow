@@ -57,8 +57,8 @@
 #' shape(3, 4) == shape(3, 4) # TRUE
 #' shape(3, 4) == shape(4, 4) # FALSE
 #'
-#' # Partially-known shapes always return FALSE
-#' shape(NA, 4) == shape(NA, 4) # FALSE
+#' # two unknown dimensions are treated as equal
+#' shape(NA, 4) == shape(NA, 4) # TRUE
 #' shape(NA, 4) == shape(3, 4)  # FALSE
 #'
 #' # Two unknown shapes, return TRUE
@@ -67,13 +67,6 @@
 #' # Comparing an unknown shape to a partially or fully defined shape returns FALSE
 #' shape(dims = NULL) == shape(NULL) # FALSE
 #' shape(dims = NULL) == shape(4)    # FALSE
-#'
-#' # != is mostly the inverse of ==, with one difference:
-#' # it raises an error when comparing a fully unknown shapes
-#' try(shape(dims = NULL) != shape(dims = NULL))
-#' # ValueError: The inequality of unknown TensorShapes is undefined.
-#' try(shape(dims = NULL) != shape())
-#' # ValueError: The inequality of unknown TensorShapes is undefined.
 #'
 #'
 #' # --- extract or replace ---
@@ -111,6 +104,7 @@ shape <- function(..., dims = list(...)) {
   if(inherits(dims, "tensorflow.tensor") && tf$executing_eagerly())
     dims <- as_r_value(dims$numpy())
 
+  names(dims) <- NULL
   dims <- lapply(dims, function(d) {
     if (is.null(d) || isTRUE(is.na(d)) ||
         (is.numeric(d) && isTRUE(d == -1L)))

@@ -1,3 +1,38 @@
+# tensorflow 2.9.0
+
+- Generic method updates:
+  - New methods:
+      all(), any(), sum(), prod(), min(), max(), mean(), range(),
+      cbind(), rbind(), t(), aperm(), sort(), 
+      as.vector(), as.character(), as.raster(),
+      is.infinite(), is.finite(), is.nan()
+  - `^` will now invoke `tf.square()` or `tf.sqrt()` directly when appropriate
+  - `|`, `&`, and `!` now cast arguments to 'bool' dtype.
+  - `print()` now shows 1d shapes without a trailing commas.
+  - `str()` method for tensors now returns only a single compact line;
+    `str()` on a list of tensors now does something sensible.
+
+- `install_tensorflow()` now install TensorFlow 2.9 by default.
+
+- `install_tensorflow()` no longer requires conda on Windows, now works in a regular venv.
+
+- Comparing two partially-defined `TensorShape` now returns TRUE if each dimension matches.
+  e.g.: `shape(NA, 4) == shape(NA, 4)` now returns TRUE, previously FALSE.
+
+- Tensors with dtype 'string' now convert to R character vectors by methods
+  `as.array()` and `as.matrix()`. (previously they converted to python.builtin.bytes,
+  or an R list of python.builtin.bytes objects)
+
+- `as_tensor()`:
+  - atomic R integer vectors now convert to 'int32', not 'int64'
+  - casting between integer and floating dtypes is now done via
+   `tf$dtypes$saturate_cast()` instead of `tf$cast()`.
+  - `shape` argument now accepts a tensor.
+  - fixed issue where expanding a scalar tensor to an nd-array with
+    `shape` provided as a tensor would raise an error.
+
+- `tf.SparseTensor` objects now inherit from `"tensorflow.tensor"`.
+
 # tensorflow 2.8.0
 
 - Updated default Tensorflow version installed by `install_tensorflow()` to 2.8.
