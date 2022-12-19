@@ -176,7 +176,7 @@ function(method = c("auto", "virtualenv", "conda"),
 }
 
 
-default_version <- numeric_version("2.9")
+default_version <- numeric_version("2.11")
 
 parse_tensorflow_version <- function(version) {
   # returns unquoted string directly passable to pip, e.g 'tensorflow==2.5.*'
@@ -270,9 +270,6 @@ install_tensorflow_mac_arm64 <- function(method = c("auto", "virtualenv", "conda
                envname = envname, python_version = python_version)
   }
 
-  extra_packages <- setdiff(extra_packages, c("scipy", "requests", "h5py"))
-  # "scipy","requests", "h5py" # pinned versions pulled in by "tensorflow-deps" already
-  # "pyyaml" no longer needed
 
   # split extra_packages into pre and post install lists
   # dangerous to invoke conda after pip, so everything conda goes first,

@@ -710,10 +710,12 @@ autocast_ab_to_tensors <- function()
 #'
 #' Coerce objects to tensorflow tensors (potentially of a specific dtype or shape). The
 #' provided default methods will call
-#' [`tf.convert_to_tensor`](https://www.tensorflow.org/api_docs/python/tf/convert_to_tensor). Depending on arguments supplied it may also call some combination of
-#'  - [`tf.dtypes.saturate_cast`](https://www.tensorflow.org/api_docs/python/tf/cast)
-#'  - tf.fill or tf.reshape
-#'  -
+#' [`tf$convert_to_tensor`](https://www.tensorflow.org/api_docs/python/tf/convert_to_tensor). Depending on arguments supplied it may also call some combination of
+#'  - [`tf$saturate_cast`](https://www.tensorflow.org/api_docs/python/tf/dtypes/saturate_cast) or
+#'    [`tf$cast`](https://www.tensorflow.org/api_docs/python/tf/cast)
+#'  - [`tf$fill`](https://www.tensorflow.org/api_docs/python/tf/fill) or
+#'    [`tf$reshape`](https://www.tensorflow.org/api_docs/python/tf/reshape)
+#'
 #'
 #' @param x object to convert
 #' @param dtype `NULL`, a tensorflow dtype (`tf$int32`), or something coercible
@@ -766,9 +768,14 @@ as_tensor.default <- function(x, dtype = NULL, ..., shape = NULL, name = NULL) {
     }
   }
 
+  # doubles get cast to float32, which is inconsistent with the dtype
+  # of other double vector conversions. For consistency, cast to float64
+  if(is.double(x) && !is.array(x))
+    x <- tf$convert_to_tensor(x, name=name, dtype = "float64")
+  else
   # dtype_hint() arg in convert_to_tensor() calls tf$constant(),
   # can silently overflow e.g., tf$convert_to_tensor(-1L, "uint8") --> 255
-  x <- tf$convert_to_tensor(x, name = name)
+    x <- tf$convert_to_tensor(x, name = name)
 
   if (!is.null(dtype)) {
     dtype <- tf$as_dtype(dtype)

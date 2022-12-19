@@ -1,3 +1,17 @@
+# tensorflow 2.11.0
+
+- `install_tensorflow()` now installs TF v2.11 by default.
+
+- `as_tensor()` now coerces bare R atomic vectors to R arrays before conversion.
+  As a consequence, by default, R atomic double vectors now coerce to 
+  'float64' dtype tensors instead of 'float32'.
+  
+- `shape()` gains the ability to accept vectors of length > 1 in `...`, 
+  including other `tf.TensorShape`s. Shapes are automatically flattened.
+  
+- Fixed an issue where a `ListWrapper` object of trackable keras layers 
+  (e.g., as part of a keras model) would not convert to an R list.
+
 # tensorflow 2.9.0
 
 - Generic method updates:
