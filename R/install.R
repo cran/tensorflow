@@ -4,13 +4,13 @@
 #' direct dependencies. For a more complete installation that includes
 #' additional optional dependencies, use [`keras::install_keras()`].
 #'
-#' @details You may be prompted to download and install
-#'   miniconda if reticulate did not find a non-system installation of python.
-#'   Miniconda is the recommended installation method for most users, as it
-#'   ensures that the R python installation is isolated from other python
-#'   installations. All python packages will by default be installed into a
-#'   self-contained conda or venv environment named "r-reticulate". Note that
-#'   "conda" is the only supported method on M1 Mac.
+#' @details You may be prompted to download and install miniconda if reticulate
+#'   did not find a non-system installation of python. Miniconda is the
+#'   recommended installation method for most users, as it ensures that the R
+#'   python installation is isolated from other python installations. All python
+#'   packages will by default be installed into a self-contained conda or venv
+#'   environment named "r-reticulate". Note that "conda" is the only supported
+#'   method on M1 Mac.
 #'
 #'   If you initially declined the miniconda installation prompt, you can later
 #'   manually install miniconda by running [`reticulate::install_miniconda()`].
@@ -25,16 +25,12 @@
 #'   Sys.setenv("RETICULATE_PYTHON" = "~/path/to/python-env/bin/python")
 #'   ```
 #'
-#' @section Apple Silicon: Tensorflow on Apple Silicon is not officially
-#'   supported by the Tensorflow maintainers. However Apple has published a
-#'   custom version of Tensorflow compatible with Arm Macs.
-#'   `install_tensorflow()` will install the special packages `tensorflow-macos`
-#'   and `tensorflow-metal` on Arm Macs. See
+#' @section Apple Silicon: Beginning with Tensorflow version 2.13, the default
+#'   tensorflow package now works on Apple Silicon. See
 #'   \url{https://developer.apple.com/metal/tensorflow-plugin/} for instructions
-#'   on how to do the equivalent manually. Please note that this is an
-#'   experimental build of both Python and Tensorflow, with known issues. In
-#'   particular, certain operations will cause errors, but can often be remedied
-#'   by pinning them to the CPU. For example:
+#'   on how to install older versions of Tensorflow on macOS. Please note that
+#'   not all operations are supported on Arm Mac GPUs. You can work around the
+#'   missing operations by pinning operations to CPU. For example:
 #'
 #'   ```` R
 #'   x <- array(runif(64*64), c(1, 64, 64))
@@ -85,52 +81,61 @@
 #' @param python_version,conda_python_version Pass a string like "3.8" to
 #'   request that conda install a specific Python version. This is ignored when
 #'   attempting to install in a Python virtual environment. Note that the Python
-#'   version must be compatible with the requested Tensorflow version, documented
-#'   here: <https://www.tensorflow.org/install/pip#system-requirements>
+#'   version must be compatible with the requested Tensorflow version,
+#'   documented here:
+#'   <https://www.tensorflow.org/install/pip#system-requirements>
+#'
+#' @param configure_cudnn If `install_tensorflow()` detects the platform is
+#'   Linux, an Nvidia GPU is available, and the TensorFlow version is 2.13 (the
+#'   default), it will install also install the pip package
+#'   "nvidia-cudnn-cu11==8.6.*", symlink the cudnn ".so" files so they can be
+#'   found by tensorflow, and emit instructions for how to install Nvidia
+#'   drivers to enable GPU usage.
 #'
 #' @param pip_ignore_installed Whether pip should ignore installed python
 #'   packages and reinstall all already installed python packages. This defaults
 #'   to `TRUE`, to ensure that TensorFlow dependencies like NumPy are compatible
 #'   with the prebuilt TensorFlow binaries.
 #'
+#' @param new_env If `TRUE`, any existing Python virtual environment and/or
+#'   conda environment specified by `envname` is deleted first.
+#'
 #' @param ... other arguments passed to [`reticulate::conda_install()`] or
 #'   [`reticulate::virtualenv_install()`], depending on the `method` used.
 #'
-#' @seealso [`keras::install_keras()`]
+#' @seealso
+#' -  [`keras::install_keras()`]
+#' -  <https://tensorflow.rstudio.com/reference/tensorflow/install_tensorflow>
 #'
 #' @export
 install_tensorflow <-
 function(method = c("auto", "virtualenv", "conda"),
          conda = "auto",
          version = "default",
-         envname = NULL,
+         envname = "r-tensorflow",
          extra_packages = NULL,
          restart_session = TRUE,
          conda_python_version = NULL,
          ...,
-         pip_ignore_installed = TRUE,
-         python_version = conda_python_version) {
+         configure_cudnn = NULL,
+         pip_ignore_installed = FALSE,
+         new_env = identical(envname, "r-tensorflow"),
+         python_version = NULL) {
 
   method <- match.arg(method)
 
-  if(is_mac_arm64())
-    return(install_tensorflow_mac_arm64(
-      method = method,
-      conda = conda,
-      version = version,
-      envname = envname,
-      extra_packages = extra_packages,
-      restart_session = restart_session,
-      python_version = python_version
-    ))
-
+  if(is_mac_arm64()) {
+    if(!as.character(version) %in% c("default", "release") &&
+       !isTRUE(tryCatch(numeric_version(version) >= "2.13.0",
+                       error = function(e) NULL)))
+      stop("Only tensorflow>=2.13 supported on Arm Macs.")
+  }
 
   # verify 64-bit
   if (.Machine$sizeof.pointer != 8) {
     stop("Unable to install TensorFlow on this platform.",
          "Binary installation is only available for 64-bit platforms.")
   }
-
 
   # some special handling for windows
   if (is_windows()) {
@@ -148,11 +153,51 @@ function(method = c("auto", "virtualenv", "conda"),
     as.character(extra_packages)
   ))
 
-  # don't double quote if packages were shell quoted already
-  packages <- shQuote(gsub("[\"']", "", packages))
+  has_gpu <- FALSE
+  if (is.null(configure_cudnn)) {
+    configure_cudnn <- FALSE
+    if (is_linux() &&
+        (version %in% c("default", "2.13") || grepl("^2\\.13", version)) &&
+        !grepl("cpu", version)) {
+      configure_cudnn <- has_gpu <- tryCatch(
+        as.logical(length(system("lspci | grep -i nvidia", intern = TRUE))),
+        warning = function(w) FALSE) # warning emitted by system for non-0 exit status
+    }
+  }
 
-  # message("Installing the python pip packages :\n",
-          # paste("  -", packages, collapse = "\n"))
+  if(configure_cudnn)
+    packages <- c(packages, "nvidia-cudnn-cu11==8.6.*")
+
+  if (isTRUE(new_env)) {
+
+    if (method %in% c("auto", "virtualenv") &&
+        reticulate::virtualenv_exists(envname))
+      reticulate::virtualenv_remove(envname = envname, confirm = FALSE)
+
+    if (method %in% c("auto", "conda")) {
+      if (!is.null(tryCatch(conda_python(envname, conda = conda),
+                            error = function(e) NULL)))
+        reticulate::conda_remove(envname, conda = conda)
+    }
+
+  }
+
+
+  python_version <- python_version %||% conda_python_version
+  if(method %in% c("auto", "virtualenv") &&
+     is.null(python_version)) {
+
+    # virtualenv_starter() picks the most recent version available, but older
+    # versions of tensorflow typically don't work with the latest Python
+    # release. In general, we're better off picking the oldest Python version available
+    # that works with the current release of tensorflow.
+    # TF 2.13 is compatible with Python <=3.11,>=3.8
+
+    available <- reticulate::virtualenv_starter(version = ">=3.8", all = TRUE)
+    # pick the smallest minor version, ignoring patchlevel
+    if(nrow(available))
+      python_version <- min(available$version[, 1:2])
+  }
 
   reticulate::py_install(
     packages       = packages,
@@ -165,6 +210,70 @@ function(method = c("auto", "virtualenv", "conda"),
     ...
   )
 
+
+  if(!file.exists(python <- virtualenv_python(envname))) {
+    # only configure if venv, not conda
+    configure_cudnn <- FALSE
+  }
+
+  if(isTRUE(configure_cudnn)) {
+
+    python <-  "/home/tomasz/.virtualenvs/r-tensorflow/bin/python"
+    # "~/.virtualenvs/r-tensorflow/lib/python3.8/site-packages/nvidia/cudnn"
+    cudnn_path <- get_cudnn_path(python)
+
+    # [1] "~/.virtualenvs/r-tensorflow/lib/python3.8/site-packages/nvidia/cudnn/lib/libcudnn_adv_infer.so.8"
+    # [2] "~/.virtualenvs/r-tensorflow/lib/python3.8/site-packages/nvidia/cudnn/lib/libcudnn_adv_train.so.8"
+    # [3] "~/.virtualenvs/r-tensorflow/lib/python3.8/site-packages/nvidia/cudnn/lib/libcudnn_cnn_infer.so.8"
+    # [4] "~/.virtualenvs/r-tensorflow/lib/python3.8/site-packages/nvidia/cudnn/lib/libcudnn_cnn_train.so.8"
+    # [5] "~/.virtualenvs/r-tensorflow/lib/python3.8/site-packages/nvidia/cudnn/lib/libcudnn_ops_infer.so.8"
+    # [6] "~/.virtualenvs/r-tensorflow/lib/python3.8/site-packages/nvidia/cudnn/lib/libcudnn_ops_train.so.8"
+    # [7] "~/.virtualenvs/r-tensorflow/lib/python3.8/site-packages/nvidia/cudnn/lib/libcudnn.so.8"
+    cudnn_sos <- Sys.glob(paste0(cudnn_path, "/lib/*.so*"))
+
+    # "/home/tomasz/.virtualenvs/r-tensorflow/lib/python3.8/site-packages/tensorflow/__init__.py"
+    tf_lib_path <- system2(python, c("-c", shQuote("import tensorflow as tf; print(tf.__file__)")),
+                       stderr = FALSE, stdout = TRUE)
+    tf_lib_path <- dirname(tf_lib_path)
+
+    from <- sub("^.*/site-packages/", "../", cudnn_sos)
+    to <- file.path(tf_lib_path, basename(cudnn_sos))
+    writeLines("creating symlinks:")
+    writeLines(paste("-", shQuote(to), "->", shQuote(from)))
+    file.symlink(from = from, to = to)
+
+
+    message("- To install the necessary drivers to enable GPU usage, ", appendLF = FALSE)
+    if (is_ubuntu()) {
+      is_wsl <- tryCatch(as.logical(length(system("uname -r | grep -i microsoft", intern = TRUE))),
+                         warning = function(w) FALSE)
+      keyring_url <- if(is_wsl)
+        "https://developer.download.nvidia.com/compute/cuda/repos/wsl-ubuntu/x86_64/cuda-keyring_1.0-1_all.deb"
+      else {
+        version_id <- system(". /etc/os-release && echo $VERSION_ID", intern = TRUE)
+        version_id <- sub(".", "", version_id, fixed = TRUE)
+        if(!version_id %in% c("1804", "2004", "2204")) {
+          warning("Unsupported Ubuntu version for CUDA 11.8. Only LTS version 18.04, 20.04 and 22.04 are supported")
+          version_id <- "2204"
+        }
+        sprintf("https://developer.download.nvidia.com/compute/cuda/repos/ubuntu%s/x86_64/cuda-keyring_1.0-1_all.deb", version_id)
+      }
+      instructions <- paste0(c(
+          "run the following terminal commands:",
+          paste("wget", keyring_url),
+          "sudo dpkg -i cuda-keyring_1.1-1_all.deb",
+          "sudo apt-get update",
+          "sudo apt-get -y install cuda-toolkit-11-8"
+        ), collapse = "\n" )
+    } else {
+      instructions <- c(
+          "follow the instructions for your Linux platform and install 'cuda-toolkit-11-8':\n",
+          "  https://developer.nvidia.com/cuda-11-8-0-download-archive?target_os=Linux&target_arch=x86_64")
+    }
+    message(instructions)
+  }
+
+
   cat("\nInstallation complete.\n\n")
 
   if (restart_session &&
@@ -176,7 +285,28 @@ function(method = c("auto", "virtualenv", "conda"),
 }
 
 
-default_version <- numeric_version("2.11")
+get_cudnn_path <- function(python = py_discover_config()$python) {
+
+  # For TF 2.13, this assumes that someone already has cudn 11-8 installed,
+  # e.g., on ubuntu:
+  # sudo apt install cuda-toolkit-11-8
+  # also, that `python -m pip install 'nvidia-cudnn-cu11==8.6.*'`
+
+  force(python)
+  cudnn_module_path <- suppressWarnings(system2(
+    python, c("-c", shQuote("import nvidia.cudnn;print(nvidia.cudnn.__file__)")),
+    stdout = TRUE, stderr = TRUE))
+  if (!is.null(attr(cudnn_module_path, "status")) ||
+      !is_string(cudnn_module_path) ||
+      !file.exists(cudnn_module_path))
+    return()
+
+  dirname(cudnn_module_path)
+
+}
+
+
+default_version <- numeric_version("2.13")
 
 parse_tensorflow_version <- function(version) {
   # returns unquoted string directly passable to pip, e.g 'tensorflow==2.5.*'

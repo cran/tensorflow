@@ -31,6 +31,7 @@ tf_v2 <- function() {
 .globals <- new.env(parent = emptyenv())
 .globals$tensorboard <- NULL
 
+
 .onLoad <- function(libname, pkgname) {
 
   # if TENSORFLOW_PYTHON is defined then forward it to RETICULATE_PYTHON
@@ -42,14 +43,20 @@ tf_v2 <- function() {
   # but insist on printing warnings (level 2) and errors (level 3)
   cpp_log_opt <- getOption("tensorflow.core.cpp_min_log_level")
   if (!is.null(cpp_log_opt))
-    Sys.setenv(TF_CPP_MIN_LOG_LEVEL = max(min(cpp_log_opt, 1), 0))
+    Sys.setenv(TF_CPP_MIN_LOG_LEVEL = max(min(cpp_log_opt, 3), 0))
 
   # delay load tensorflow
-  tf <<- import("tensorflow", delay_load = list(
+  tryCatch({
 
-    priority = 5,
+    tf <<- import("tensorflow", delay_load = list(
 
-    environment = "r-reticulate",
+    priority = 5, # keras sets priority = 10
+
+    environment = "r-tensorflow",
+
+    # before_load = function() {
+    #
+    # },
 
     on_load = function() {
 
@@ -96,8 +103,15 @@ tf_v2 <- function() {
     on_error = function(e) {
       stop(tf_config_error_message(), call. = FALSE)
     }
-
   ))
+  },
+  python.builtin.ModuleNotFoundError = function(e) {
+    warning(e$message, "\n",
+    "Restart the R session and load the tensorflow R package before ",
+    "reticulate has initialized Python, or ensure reticulate initialized ",
+    "a Python installation where the tensorflow module is installed.", call. = FALSE)
+  })
+
 
   # provide a common base S3 class for tensors
   reticulate::register_class_filter(function(classes) {
@@ -116,6 +130,9 @@ tf_v2 <- function() {
 }
 
 
+is_string <- function(x) {
+  is.character(x) && length(x) == 1L && !is.na(x)
+}
 
 #' TensorFlow configuration information
 #'

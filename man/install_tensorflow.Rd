@@ -8,13 +8,15 @@ install_tensorflow(
   method = c("auto", "virtualenv", "conda"),
   conda = "auto",
   version = "default",
-  envname = NULL,
+  envname = "r-tensorflow",
   extra_packages = NULL,
   restart_session = TRUE,
   conda_python_version = NULL,
   ...,
-  pip_ignore_installed = TRUE,
-  python_version = conda_python_version
+  configure_cudnn = NULL,
+  pip_ignore_installed = FALSE,
+  new_env = identical(envname, "r-tensorflow"),
+  python_version = NULL
 )
 }
 \arguments{
@@ -29,7 +31,7 @@ See \strong{Finding Conda} and \code{\link[reticulate:conda_binary]{conda_binary
 
 \item{version}{TensorFlow version to install. Valid values include:
 \itemize{
-\item \code{"default"} installs  2.11
+\item \code{"default"} installs  2.13
 \item \code{"release"} installs the latest release version of tensorflow (which may
 be incompatible with the current version of the R package)
 \item A version specification like \code{"2.4"} or \code{"2.4.0"}. Note that if the patch
@@ -55,16 +57,27 @@ only occur within RStudio).}
 \item{...}{other arguments passed to \code{\link[reticulate:conda-tools]{reticulate::conda_install()}} or
 \code{\link[reticulate:virtualenv-tools]{reticulate::virtualenv_install()}}, depending on the \code{method} used.}
 
+\item{configure_cudnn}{If \code{install_tensorflow()} detects the platform is
+Linux, an Nvidia GPU is available, and the TensorFlow version is 2.13 (the
+default), it will install also install the pip package
+"nvidia-cudnn-cu11==8.6.*", symlink the cudnn ".so" files so they can be
+found by tensorflow, and emit instructions for how to install Nvidia
+drivers to enable GPU usage.}
+
 \item{pip_ignore_installed}{Whether pip should ignore installed python
 packages and reinstall all already installed python packages. This defaults
 to \code{TRUE}, to ensure that TensorFlow dependencies like NumPy are compatible
 with the prebuilt TensorFlow binaries.}
 
+\item{new_env}{If \code{TRUE}, any existing Python virtual environment and/or
+conda environment specified by \code{envname} is deleted first.}
+
 \item{python_version, conda_python_version}{Pass a string like "3.8" to
 request that conda install a specific Python version. This is ignored when
 attempting to install in a Python virtual environment. Note that the Python
-version must be compatible with the requested Tensorflow version, documented
-here: \url{https://www.tensorflow.org/install/pip#system-requirements}}
+version must be compatible with the requested Tensorflow version,
+documented here:
+\url{https://www.tensorflow.org/install/pip#system-requirements}}
 }
 \description{
 \code{install_tensorflow()} installs just the tensorflow python package and it's
@@ -72,13 +85,13 @@ direct dependencies. For a more complete installation that includes
 additional optional dependencies, use \code{\link[keras:install_keras]{keras::install_keras()}}.
 }
 \details{
-You may be prompted to download and install
-miniconda if reticulate did not find a non-system installation of python.
-Miniconda is the recommended installation method for most users, as it
-ensures that the R python installation is isolated from other python
-installations. All python packages will by default be installed into a
-self-contained conda or venv environment named "r-reticulate". Note that
-"conda" is the only supported method on M1 Mac.
+You may be prompted to download and install miniconda if reticulate
+did not find a non-system installation of python. Miniconda is the
+recommended installation method for most users, as it ensures that the R
+python installation is isolated from other python installations. All python
+packages will by default be installed into a self-contained conda or venv
+environment named "r-reticulate". Note that "conda" is the only supported
+method on M1 Mac.
 
 If you initially declined the miniconda installation prompt, you can later
 manually install miniconda by running \code{\link[reticulate:install_miniconda]{reticulate::install_miniconda()}}.
@@ -95,16 +108,12 @@ commonly by setting an environment variable:
 }
 
 \section{Apple Silicon}{
- Tensorflow on Apple Silicon is not officially
-supported by the Tensorflow maintainers. However Apple has published a
-custom version of Tensorflow compatible with Arm Macs.
-\code{install_tensorflow()} will install the special packages \code{tensorflow-macos}
-and \code{tensorflow-metal} on Arm Macs. See
+ Beginning with Tensorflow version 2.13, the default
+tensorflow package now works on Apple Silicon. See
 \url{https://developer.apple.com/metal/tensorflow-plugin/} for instructions
-on how to do the equivalent manually. Please note that this is an
-experimental build of both Python and Tensorflow, with known issues. In
-particular, certain operations will cause errors, but can often be remedied
-by pinning them to the CPU. For example:
+on how to install older versions of Tensorflow on macOS. Please note that
+not all operations are supported on Arm Mac GPUs. You can work around the
+missing operations by pinning operations to CPU. For example:
 
 \if{html}{\out{<div class="sourceCode R">}}\preformatted{x <- array(runif(64*64), c(1, 64, 64))
 keras::layer_random_rotation(x, .5)  # Error:
@@ -127,5 +136,8 @@ for details.
 }
 
 \seealso{
-\code{\link[keras:install_keras]{keras::install_keras()}}
+\itemize{
+\item \code{\link[keras:install_keras]{keras::install_keras()}}
+\item \url{https://tensorflow.rstudio.com/reference/tensorflow/install_tensorflow}
+}
 }

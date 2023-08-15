@@ -1,7 +1,7 @@
 Package: tensorflow
 Type: Package
 Title: R Interface to 'TensorFlow'
-Version: 2.11.0
+Version: 2.13.0
 Authors@R: c(
   person("Daniel", "Falbel", role = c("ctb", "cph"), email = "daniel@rstudio.com"),
   person("JJ", "Allaire", role = c("aut", "cph")),
@@ -35,14 +35,14 @@ URL: https://github.com/rstudio/tensorflow
 BugReports: https://github.com/rstudio/tensorflow/issues
 SystemRequirements: TensorFlow (https://www.tensorflow.org/)
 Encoding: UTF-8
-Depends: R (>= 3.1)
-Imports: config, processx, reticulate (>= 1.24), tfruns (>= 1.0),
+Depends: R (>= 3.6)
+Imports: config, processx, reticulate (>= 1.31), tfruns (>= 1.0),
         utils, yaml, grDevices, tfautograph (>= 0.3.1), rstudioapi (>=
         0.7)
-Suggests: testthat (>= 2.1.0), keras, callr
+Suggests: testthat (>= 2.1.0), keras, pillar, callr
 RoxygenNote: 7.2.3
 NeedsCompilation: no
-Packaged: 2022-12-19 14:24:03 UTC; tomasz
+Packaged: 2023-08-15 15:51:30 UTC; tomasz
 Author: Daniel Falbel [ctb, cph],
   JJ Allaire [aut, cph],
   RStudio [cph, fnd],
@@ -53,4 +53,4 @@ Author: Daniel Falbel [ctb, cph],
   Google Inc. [ctb, cph] (Examples and Tutorials)
 Maintainer: Tomasz Kalinowski <tomasz.kalinowski@rstudio.com>
 Repository: CRAN
-Date/Publication: 2022-12-19 15:00:02 UTC
+Date/Publication: 2023-08-15 16:30:02 UTC
