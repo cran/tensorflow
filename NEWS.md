@@ -1,20 +1,41 @@
+# tensorflow 2.14.0
+
+- `install_tensorflow()` changes:
+  - Installs TensorFlow v2.14 by default.
+  - Now will automatically install the required Nvidia CUDA runtime as a pip
+    package if on Linux and a GPU is detected. You can opt-out by passing
+    `install_tensorflow(cuda = FALSE)`. Aside from the Nvidia driver, no other
+    pre-existing Nvidia CUDA packages are now necessary.
+  - The `configure_cudnn` argument is now superseded by the new argument `cuda`.
+  - New argument `metal`, for specifying if the `tensorflow-metal` pip package
+    should be installed on Arm Macs. Defaults to `TRUE` on Arm Macs.
+
+- Fixed an issue where `as.array()` and other methods might fail if the tensor
+  had conversion disabled via `r_to_py()` or `convert = FALSE`.
+- Fixed an issue where Ops group generic dispatch would error one object was a tensor
+  and the other was a non-tensor Python object (e.g., a numpy array).
+- Removed long deprecated symbols: 
+    `install_tensorflow_extras()`, `tfe_enable_eager_execution()`
+- tfestimator generics `train()` and `train_and_evaluate()` now warn about 
+  their deprecation status when called. The will be removed in a future release. 
+
 # tensorflow 2.13.0
 
 - `install_tensorflow()` changes:
      - Installs TensorFlow v2.13 by default now.
-     - The `envname` argument new default is `"r-tensorflow"`. This means that 
-       unless the `envname` argument supplied, `install_tensorflow()` will now 
-       install into the `"r-tensorflow"` environment, bootstrapping a venv of 
+     - The `envname` argument new default is `"r-tensorflow"`. This means that
+       unless the `envname` argument supplied, `install_tensorflow()` will now
+       install into the `"r-tensorflow"` environment, bootstrapping a venv of
        that name if necessary.
-     - gains a `new_env` argument. If `TRUE`, any existing environment 
+     - gains a `new_env` argument. If `TRUE`, any existing environment
        specified by `envname` is deleted and created anew. Defaults to `TRUE` if
        envname is `"r-tensorflow"`, `FALSE` otherwise.
-     - If running on Linux, now detects if NVIDIA GPUs on Linux are installed, 
-       and if so, and installs cuDNN (via pip), configures symlinks for tensorflow 
-       to find cuDNN, and emits additional instructions for how to install the necessary CUDA 
+     - If running on Linux, now detects if NVIDIA GPUs on Linux are installed,
+       and if so, and installs cuDNN (via pip), configures symlinks for tensorflow
+       to find cuDNN, and emits additional instructions for how to install the necessary CUDA
        drivers to enable GPU usage. Set new arg `configure_cudnn = FALSE` to disable.
      - `pip_ignore_installed` default is now `FALSE` again.
-     - On Arm Macs (M1/M2), the default tensorflow package is once again installed, 
+     - On Arm Macs (M1/M2), the default tensorflow package is once again installed,
        rather than `tensorflow-macos` and `tensorflow-metal`.
 
 - New `pillar:type_sum()` method for Tensors, giving a

@@ -19,12 +19,18 @@
 #' @import reticulate
 #'
 #' @docType package
+#' @aliases tensorflow-package
 #' @name tensorflow
-NULL
+"_PACKAGE"
+
+## usethis namespace: start
+#' @importFrom lifecycle deprecated
+## usethis namespace: end
+
 
 tf_v2 <- function() {
   # 1.14 already shows deprecation warnings.
-  package_version(tf_version()) >= "1.14"
+  package_version(tf_version()) >= "2.0"
 }
 
 # globals
@@ -116,6 +122,8 @@ tf_v2 <- function() {
   # provide a common base S3 class for tensors
   reticulate::register_class_filter(function(classes) {
     if (any(c("tensorflow.python.ops.variables.Variable",
+              "tensorflow.python.types.core.Tensor",       # 2.14
+              "tensorflow.python.framework.tensor.Tensor", # 2.14
               "tensorflow.python.framework.ops.Tensor",
               "tensorflow.python.ops.ragged.ragged_tensor.RaggedTensor",
               "tensorflow.python.framework.sparse_tensor.SparseTensor")
@@ -207,11 +215,11 @@ print.tensorflow_config <- function(x, ...) {
 
 #' TensorFlow GPU configuration information
 #'
-#' @return A bool, wether GPU is configured or not, or NA if could not be
+#' @return A bool, whether GPU is configured or not, or NA if could not be
 #' determined.
 #'
 #' @keywords internal
-#' @param verbose boolean. Wether to show extra GPU info.
+#' @param verbose boolean. Whether to show extra GPU info.
 #' @export
 tf_gpu_configured <- function(verbose=TRUE) {
   res <- tryCatch({

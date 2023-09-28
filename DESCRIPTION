@@ -1,22 +1,22 @@
 Package: tensorflow
 Type: Package
 Title: R Interface to 'TensorFlow'
-Version: 2.13.0
+Version: 2.14.0
 Authors@R: c(
-  person("Daniel", "Falbel", role = c("ctb", "cph"), email = "daniel@rstudio.com"),
   person("JJ", "Allaire", role = c("aut", "cph")),
-  person("RStudio", role = c("cph", "fnd")),
+  person("Tomasz", "Kalinowski", role = c("ctb", "cph", "cre"),
+         email = "tomasz.kalinowski@posit.co"),
+  person("Daniel", "Falbel", role = c("ctb", "cph"), email = "daniel@posit.co"),
+  person("Dirk", "Eddelbuettel", role = c("ctb", "cph"),
+         email = "edd@debian.org"),
   person("Yuan", "Tang", role = c("aut", "cph"),
          email = "terrytangyuan@gmail.com",
          comment = c(ORCID = "0000-0001-5243-233X")),
-  person("Dirk", "Eddelbuettel", role = c("ctb", "cph"),
-         email = "edd@debian.org"),
   person("Nick", "Golding", role = c("ctb", "cph"),
          email = "nick.golding.research@gmail.com"),
-  person("Tomasz", "Kalinowski", role = c("ctb", "cph", "cre"),
-         email = "tomasz.kalinowski@rstudio.com"),
   person("Google Inc.", role = c("ctb", "cph"),
-         comment = "Examples and Tutorials")
+         comment = "Examples and Tutorials"),
+  person("Posit, PBC", role = c("cph", "fnd"))
   )
 Description: Interface to 'TensorFlow' <https://www.tensorflow.org/>,
   an open source software library for numerical computation using data
@@ -36,21 +36,21 @@ BugReports: https://github.com/rstudio/tensorflow/issues
 SystemRequirements: TensorFlow (https://www.tensorflow.org/)
 Encoding: UTF-8
 Depends: R (>= 3.6)
-Imports: config, processx, reticulate (>= 1.31), tfruns (>= 1.0),
+Imports: config, processx, reticulate (>= 1.32), tfruns (>= 1.0),
         utils, yaml, grDevices, tfautograph (>= 0.3.1), rstudioapi (>=
-        0.7)
-Suggests: testthat (>= 2.1.0), keras, pillar, callr
+        0.7), lifecycle
+Suggests: testthat (>= 2.1.0), keras, pillar, withr, callr
 RoxygenNote: 7.2.3
 NeedsCompilation: no
-Packaged: 2023-08-15 15:51:30 UTC; tomasz
-Author: Daniel Falbel [ctb, cph],
-  JJ Allaire [aut, cph],
-  RStudio [cph, fnd],
-  Yuan Tang [aut, cph] (<https://orcid.org/0000-0001-5243-233X>),
-  Dirk Eddelbuettel [ctb, cph],
-  Nick Golding [ctb, cph],
+Packaged: 2023-09-28 12:50:39 UTC; tomasz
+Author: JJ Allaire [aut, cph],
   Tomasz Kalinowski [ctb, cph, cre],
-  Google Inc. [ctb, cph] (Examples and Tutorials)
-Maintainer: Tomasz Kalinowski <tomasz.kalinowski@rstudio.com>
+  Daniel Falbel [ctb, cph],
+  Dirk Eddelbuettel [ctb, cph],
+  Yuan Tang [aut, cph] (<https://orcid.org/0000-0001-5243-233X>),
+  Nick Golding [ctb, cph],
+  Google Inc. [ctb, cph] (Examples and Tutorials),
+  Posit, PBC [cph, fnd]
+Maintainer: Tomasz Kalinowski <tomasz.kalinowski@posit.co>
 Repository: CRAN
-Date/Publication: 2023-08-15 16:30:02 UTC
+Date/Publication: 2023-09-28 15:50:02 UTC
