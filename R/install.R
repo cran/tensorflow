@@ -204,8 +204,15 @@ function(method = c("auto", "virtualenv", "conda"),
 
     available <- reticulate::virtualenv_starter(version = ">=3.9", all = TRUE)
     # pick the smallest minor version, ignoring patchlevel
-    if(nrow(available))
+    if(nrow(available)) {
       python_version <- min(available$version[, 1:2])
+      if(python_version >= "3.12" && isTRUE(grepl("default", version)))
+        stop(
+          "The current release version of TensorFlow requires a Python version between 3.8 and 3.11. ",
+          "Python versions >=3.12 are not supported. Please use ",
+          "`reticulate::install_python('3.10:latest')` or manually install an older version of Python from www.python.org/downloads"
+          )
+    }
   }
 
   if (isTRUE(new_env)) {
@@ -260,7 +267,7 @@ function(method = c("auto", "virtualenv", "conda"),
   invisible(NULL)
 }
 
-default_version <- numeric_version("2.14")
+default_version <- numeric_version("2.15")
 
 parse_tensorflow_version <- function(version) {
   # returns unquoted string directly passable to pip, e.g 'tensorflow==2.5.*'

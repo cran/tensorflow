@@ -1,6 +1,6 @@
-725775705d9867429a9245a320bcd0d3 *DESCRIPTION
-729424b2a11bae9b849856a336db7675 *NAMESPACE
-4bc25650b7ab32fd023c83d54414306e *NEWS.md
+968d8d48b40498f2f2852d2c1421a1c3 *DESCRIPTION
+152da2065ff96a4c64262e2116228573 *NAMESPACE
+53cc98045226a16223d2f040f4bc8c57 *NEWS.md
 68d834ed4ccd8533dc235b694808e3d1 *R/arguments.R
 7fbfa81c35e80706601466ff6022c981 *R/compat.R
 d41d8cd98f00b204e9800998ecf8427e *R/deprecated.R
@@ -8,15 +8,15 @@ be8c712953928f5b1f58b5ee3c505714 *R/eager.R
 f0d80cb665113d80fff634c98e5fce4f *R/estimator-generics.R
 c431e03bc4fd4a06450b54ad3d140e49 *R/extract.R
 7b78d237b223c4a02ab85d01d5d23683 *R/flags.R
-4d9536da1e6a7a691ca6d83050c4cc12 *R/generics.R
+de0fc8730c4e1d2a913ae2c9fb32d0c9 *R/generics.R
 f85078163a36c0bf092adc04df076bd9 *R/help.R
-466a167d69061e5789da025de0ea0e22 *R/install.R
+685d500c04e26ce0126d7f8192e41091 *R/install.R
 a8704afbee84b050dd802866000c8154 *R/modules.R
 a08c4296d922f3f48d4628b7dd10b0f8 *R/package.R
 5e4aed440cbd0cb82dd8e067cdaba4ae *R/probability.R
 5d10af460d836b537cae671b5c6b7051 *R/reexports.R
 e029e54888278efc9d09ec4b4cb8bf8e *R/save.R
-a2960bf184a083e498a8e599daeb5d97 *R/seed.R
+f145b490f3b0d84d02a5fc6158ecbd93 *R/seed.R
 10eadb76699474b98d5b018f0e17aa2c *R/shape.R
 2eaa75f8b24264f9f6f9ab7833e5369b *R/tensorboard.R
 08d12700a071a0f7b39885f34c30c7ec *R/utils.R
@@ -33,7 +33,7 @@ f41ed996be135fb35afe00641621da61 *man/figures/lifecycle-questioning.svg
 306bef67d1c636f209024cf2403846fd *man/figures/lifecycle-soft-deprecated.svg
 ed42e3fbd7cc30bc6ca8fa9b658e24a8 *man/figures/lifecycle-stable.svg
 bf2f1ad432ecccee3400afe533404113 *man/figures/lifecycle-superseded.svg
-936238cbe5dce66e0bdf3c8fd4c3f2f2 *man/install_tensorflow.Rd
+2b6ab66345b2771b795859e1e10b80ae *man/install_tensorflow.Rd
 d4f3231f3a444f6779308cfac570c9c8 *man/parse_arguments.Rd
 ae3021f71671fd702be0dd7deec61978 *man/parse_flags.Rd
 34336738e171c76b7e30a7bbefef4df5 *man/reexports.Rd
@@ -41,7 +41,7 @@ ae3021f71671fd702be0dd7deec61978 *man/parse_flags.Rd
 c30df7e7899724ad7d750b3cf673f4c5 *man/shape.Rd
 09f02615851f0213a569eb9a5099d78f *man/sub-.tensorflow.tensor.Rd
 fe57d7bf4f29049bd428dcf4873126a3 *man/tensorboard.Rd
-aa2a1c0599c5dc529090ae9b1e362845 *man/tensorflow.Rd
+f33e4bc9045be1bad289ee9fd704fbb0 *man/tensorflow.Rd
 9781a5afb032bc79c4dd850261328910 *man/tf.Rd
 e99323d12bb948312a5b228f8acf663a *man/tf_config.Rd
 6c09d2ed168a2c225d2cb95b5101ff9d *man/tf_extract_opts.Rd

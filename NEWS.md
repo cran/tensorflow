@@ -1,3 +1,8 @@
+# tensorflow 2.15.0
+
+- `install_tensorflow()` installs TensorFlow v2.15 by default
+- Added compatibility with the latest release of reticulate (> 1.34).
+
 # tensorflow 2.14.0
 
 - `install_tensorflow()` changes:

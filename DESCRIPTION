@@ -1,7 +1,7 @@
 Package: tensorflow
 Type: Package
 Title: R Interface to 'TensorFlow'
-Version: 2.14.0
+Version: 2.15.0
 Authors@R: c(
   person("JJ", "Allaire", role = c("aut", "cph")),
   person("Tomasz", "Kalinowski", role = c("ctb", "cph", "cre"),
@@ -40,9 +40,9 @@ Imports: config, processx, reticulate (>= 1.32), tfruns (>= 1.0),
         utils, yaml, grDevices, tfautograph (>= 0.3.1), rstudioapi (>=
         0.7), lifecycle
 Suggests: testthat (>= 2.1.0), keras, pillar, withr, callr
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 NeedsCompilation: no
-Packaged: 2023-09-28 12:50:39 UTC; tomasz
+Packaged: 2024-01-31 19:12:34 UTC; tomasz
 Author: JJ Allaire [aut, cph],
   Tomasz Kalinowski [ctb, cph, cre],
   Daniel Falbel [ctb, cph],
@@ -53,4 +53,4 @@ Author: JJ Allaire [aut, cph],
   Posit, PBC [cph, fnd]
 Maintainer: Tomasz Kalinowski <tomasz.kalinowski@posit.co>
 Repository: CRAN
-Date/Publication: 2023-09-28 15:50:02 UTC
+Date/Publication: 2024-01-31 19:50:02 UTC
