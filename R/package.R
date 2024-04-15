@@ -58,7 +58,10 @@ tf_v2 <- function() {
 
     priority = 5, # keras sets priority = 10
 
-    environment = "r-tensorflow",
+    environment = c(
+      "r-tensorflow",
+      if(getNamespaceVersion("reticulate") >= "1.36.0") "r-keras"
+    ),
 
     # before_load = function() {
     #
